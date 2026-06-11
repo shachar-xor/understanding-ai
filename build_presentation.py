@@ -545,36 +545,50 @@ def s04b_done_before_timeline(prs):
 
 
 def s05_ai_different(prs):
-    """5 — But AI is different: fast and closed"""
-    s = content_slide(prs, "BUT AI IS DIFFERENT", "Fast, and closed")
+    """5 — But AI is different: fast and closed (clean typographic)"""
+    s = image_slide(prs)
 
-    img_top, img_h, col_w = Inches(1.9), Inches(3.5), Inches(5.8)
-    if os.path.exists(asset("fast.png")):
-        add_pic_fit(s, asset("fast.png"), Inches(0.3), img_top, col_w, img_h)
-    if os.path.exists(asset("closed.png")):
-        add_pic_fit(s, asset("closed.png"), Inches(7.0), img_top, col_w, img_h)
+    # Centered title
+    t = s.shapes.add_textbox(Inches(0.55), Inches(0.6), Inches(12.2), Inches(0.95))
+    tp = t.text_frame.paragraphs[0]
+    tp.alignment = PP_ALIGN.CENTER
+    tr = tp.add_run(); tr.text = "But AI is different"
+    tr.font.size = Pt(34); tr.font.bold = True; tr.font.color.rgb = FG; tr.font.name = HEAD
 
-    rect(s, Inches(6.55), img_top, Pt(1), Inches(4.0), fill=LINE_DIM)
+    # Vertical divider (static)
+    rect(s, Inches(6.655), Inches(2.2), Pt(1.5), Inches(3.1), fill=LINE_DIM)
 
-    txb(s, "Fast", Inches(0.3), Inches(5.5), Inches(5.8), Inches(0.6),
-        size=28, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
-    txb(s, "Closed", Inches(7.0), Inches(5.5), Inches(5.8), Inches(0.6),
-        size=28, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+    def panel(cx, icon, word):
+        col_w = Inches(5.6)
+        left = cx - col_w / 2
+        ic = s.shapes.add_textbox(left, Inches(2.45), col_w, Inches(1.4))
+        ip = ic.text_frame.paragraphs[0]; ip.alignment = PP_ALIGN.CENTER
+        ir = ip.add_run(); ir.text = icon; ir.font.size = Pt(66)
+        wd = txb(s, word, left, Inches(4.0), col_w, Inches(1.0),
+                 size=46, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+        return [ic, wd]
 
-    payoff = txb(s, "So the language won't come from the vendors. It has to come from us.",
-                 Inches(0.55), Inches(6.25), Inches(12.2), Inches(0.6),
-                 size=18, bold=True, color=FG, align=PP_ALIGN.CENTER)
-    animate_clicks(s, [[payoff]])
+    fast_grp   = panel(Inches(3.43), "⏩", "Fast")
+    closed_grp = panel(Inches(9.9),  "🔒", "Closed")
+
+    payoff = txb(s, "So we build it ourselves: as a community, vendor-independent.",
+                 Inches(0.4), Inches(5.85), Inches(12.5), Inches(0.9),
+                 size=24, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+
+    # Reveal: Fast, then Closed, then the payoff.
+    animate_clicks(s, [fast_grp, closed_grp, [payoff]])
 
     add_notes(s,
         "⏱ ~1:30 | Running: ~5:15\n\n"
-        "There's a catch, two of them.\n"
-        "FAST: AI moves faster than we can build shared understanding. New models and terms\n"
-        "every few weeks.\n"
-        "CLOSED: it's vendor-driven and built for lock-in. OpenAI, Anthropic, Google, Meta\n"
-        "all compete; none is incentivized to give us a shared vocabulary.\n"
-        "(click) 'So the language won't come from the vendors. It has to come from us.'\n"
-        "That is exactly what the rest of this talk does, with three words.")
+        "The catch: AI denies us the two things that let us build a shared language before.\n"
+        "(click) FAST: new models and terms every few weeks. The words never get a chance\n"
+        "to settle the way 'Singleton' or 'SOLID' did over years.\n"
+        "(click) CLOSED: it's vendor-driven and built for lock-in. OpenAI, Anthropic, Google,\n"
+        "Meta all compete; none is incentivized to give us a shared vocabulary.\n"
+        "(click) 'So we build it ourselves: as a community, vendor-independent.' We can't wait\n"
+        "for it to settle, and nobody hands it to us. That is exactly what the rest of this talk\n"
+        "does, with three words.\n\n"
+        "Fast / Closed / payoff reveal on click (PowerPoint 'Appear'; confirm in PowerPoint).")
 
 
 def s04_why_hard(prs):
