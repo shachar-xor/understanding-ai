@@ -19,7 +19,8 @@ from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
-from pptx.oxml.ns import qn
+from pptx.oxml.ns import qn, nsdecls
+from pptx.oxml import parse_xml
 
 HERE     = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE = os.path.join(HERE, "Cato Presentation Template.pptx")
@@ -188,6 +189,86 @@ def add_notes(slide, text):
     slide.notes_slide.notes_text_frame.text = text
 
 
+def animate_clicks(slide, click_groups):
+    """
+    Add 'Appear' entrance animations triggered on click.
+
+    click_groups : list of click steps; each step is a list of shape objects
+                   revealed together on that click, in order.
+
+    Animated shapes stay hidden until their click, then appear. NOTE: python-pptx
+    cannot render animations and QuickLook ignores them — verify playback in
+    PowerPoint/Keynote.
+    """
+    cid = [2]   # id 1 = tmRoot, id 2 = mainSeq (reserved)
+
+    def nid():
+        cid[0] += 1
+        return cid[0]
+
+    def set_node(spid):
+        return (
+            '<p:set>'
+            '<p:cBhvr>'
+            f'<p:cTn id="{nid()}" dur="1" fill="hold">'
+            '<p:stCondLst><p:cond delay="0"/></p:stCondLst>'
+            '</p:cTn>'
+            f'<p:tgtEl><p:spTgt spid="{spid}"/></p:tgtEl>'
+            '<p:attrNameLst><p:attrName>style.visibility</p:attrName></p:attrNameLst>'
+            '</p:cBhvr>'
+            '<p:to><p:strVal val="visible"/></p:to>'
+            '</p:set>'
+        )
+
+    def effect_par(spid, node_type):
+        return (
+            '<p:par>'
+            f'<p:cTn id="{nid()}" presetID="1" presetClass="entr" presetSubtype="0" '
+            f'fill="hold" grpId="0" nodeType="{node_type}">'
+            '<p:stCondLst><p:cond delay="0"/></p:stCondLst>'
+            f'<p:childTnLst>{set_node(spid)}</p:childTnLst>'
+            '</p:cTn>'
+            '</p:par>'
+        )
+
+    click_pars = []
+    for group in click_groups:
+        outer, inner = nid(), nid()
+        effects = "".join(
+            effect_par(shp.shape_id, "clickEffect" if i == 0 else "withEffect")
+            for i, shp in enumerate(group)
+        )
+        click_pars.append(
+            '<p:par>'
+            f'<p:cTn id="{outer}" fill="hold">'
+            '<p:stCondLst><p:cond delay="indefinite"/></p:stCondLst>'
+            '<p:childTnLst><p:par>'
+            f'<p:cTn id="{inner}" fill="hold">'
+            '<p:stCondLst><p:cond delay="0"/></p:stCondLst>'
+            f'<p:childTnLst>{effects}</p:childTnLst>'
+            '</p:cTn></p:par></p:childTnLst>'
+            '</p:cTn>'
+            '</p:par>'
+        )
+
+    timing = (
+        f'<p:timing {nsdecls("p")}>'
+        '<p:tnLst><p:par>'
+        '<p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot">'
+        '<p:childTnLst><p:seq concurrent="1" nextAc="seek">'
+        '<p:cTn id="2" dur="indefinite" nodeType="mainSeq">'
+        f'<p:childTnLst>{"".join(click_pars)}</p:childTnLst>'
+        '</p:cTn>'
+        '<p:prevCondLst><p:cond evt="onPrev" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:prevCondLst>'
+        '<p:nextCondLst><p:cond evt="onNext" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:nextCondLst>'
+        '</p:seq></p:childTnLst>'
+        '</p:cTn>'
+        '</p:par></p:tnLst>'
+        '</p:timing>'
+    )
+    slide._element.append(parse_xml(timing))
+
+
 def asset(name):
     return os.path.join(ASSETS, name)
 
@@ -244,40 +325,260 @@ def s01_title(prs):
     """1 — Title slide (Cover Slide Black)"""
     s = add(prs, "Cover Slide Black")
     set_ph(s, 0, "Understanding AI for Geeks", color=FG)
-    set_ph(s, 12, "The Language of AI  ·  A trivial introduction", color=ACCENT)
+    del_ph(s, 12)   # no subtitle
     add_notes(s,
         "⏱ 0:30 | Running: 0:30\n\n"
         "Let the slide sit for a moment. No need to say much.\n"
         "You can say: 'Let's talk about AI — but not in the way you've heard before.'")
 
 
-def s02_about_me(prs):
-    """2 — About me (hidden)"""
-    s = add(prs, "Cover Slide Black")
-    set_ph(s, 0, "Shachar Or", color=FG)
-    set_ph(s, 12, "[ edit before presenting ]", color=MUTED)
-    hide(s)
+def s02_intro_me(prs):
+    """2 — Hi, I'm Shachar (the hook / self-intro)"""
+    s = content_slide(prs, "ABOUT ME", "Hi, I'm Shachar")
+
+    # Four bullets — minimal text, revealed one per click. Mint marker + white text.
+    bullet_shapes = []
+    y = Inches(1.95)
+    for text in ["A software developer", "5+ years at Cato",
+                 "A Lego & The Office fan", "A geek"]:
+        tb = s.shapes.add_textbox(Inches(0.55), y, Inches(6.0), Inches(0.7))
+        tf = tb.text_frame
+        tf.word_wrap = True
+        p = tf.paragraphs[0]
+        m = p.add_run(); m.text = "▸   "
+        m.font.size = Pt(26); m.font.bold = True; m.font.color.rgb = ACCENT; m.font.name = FONT
+        r = p.add_run(); r.text = text
+        r.font.size = Pt(26); r.font.bold = True; r.font.color.rgb = FG; r.font.name = FONT
+        bullet_shapes.append(tb)
+        y += Inches(0.95)
+
+    # Hero photo on the right (AI-enhanced version) — enlarged
+    add_pic_fit(s, asset("Cato_leggo_ai_enhanced.png"),
+                Inches(6.65), Inches(1.55), Inches(6.55), Inches(5.4))
+
+    # Pop-up punchline: Michael Scott also holding a Dundie (mint-framed inset)
+    mx, my, mw, mh = Inches(9.0), Inches(5.5), Inches(4.05), Inches(2.28)
+    frame = rect(s, mx - Pt(3), my - Pt(3), mw + Pt(6), mh + Pt(6), fill=ACCENT)
+    mscott = s.shapes.add_picture(asset("michael_scott.png"), mx, my, mw, mh)
+
+    # Reveal bullets one per click; the Michael Scott pop-up appears together
+    # with the "A Lego & The Office fan" bullet (index 2).
+    animate_clicks(s, [
+        [bullet_shapes[0]],
+        [bullet_shapes[1]],
+        [bullet_shapes[2], frame, mscott],
+        [bullet_shapes[3]],
+    ])
+
     add_notes(s,
-        "⏱ HIDDEN — skip in presentation\n\n"
-        "Edit your name and title before un-hiding if needed.")
+        "⏱ 0:45 | Running: 1:15\n\n"
+        "Open warm and light — this is the hook. Click through the four points as you\n"
+        "talk; let the photo carry the rest.\n"
+        "'Hi, my name is Shachar, and as you can see from my picture here, I'm:\n"
+        " a software developer; over 5 years at Cato — there's the 5-years-a-Catonian\n"
+        " Lego tower; a Lego and The Office fan — yes, that's my Dundie...'\n"
+        " (same click: Michael Scott pops up) '...just like Michael's.'  'And a geek —\n"
+        " which is what this talk is about.'\n\n"
+        "Click-to-reveal is authored as PowerPoint 'Appear' animations — confirm it\n"
+        "plays in PowerPoint/Keynote (it won't show in QuickLook previews).")
 
 
-def s03_pin_mystery(prs):
-    """3 — Cotter pin, no text"""
+def s03_geek_origin(prs):
+    """3 — As a geek, I learn by taking things apart (build up / break down / fix)"""
     s = image_slide(prs)
-    txb(s, "?", Inches(0), Inches(0.3), Inches(13.33), Inches(0.8),
-        size=18, color=MUTED, align=PP_ALIGN.CENTER)
-    add_pic_fit(s, asset("pin_transparent.png"),
-                Inches(4.7), Inches(1.2), Inches(3.9), Inches(5.3))
+
+    # Centered title — "love" in mint to echo the heart on the client.
+    t = s.shapes.add_textbox(Inches(0.55), Inches(0.5), Inches(12.2), Inches(0.95))
+    tf = t.text_frame
+    tf.word_wrap = True
+    p = tf.paragraphs[0]
+    p.alignment = PP_ALIGN.CENTER
+    for txt, col in [("I ", FG), ("love", ACCENT), (" to understand things", FG)]:
+        r = p.add_run(); r.text = txt
+        r.font.size = Pt(32); r.font.bold = True; r.font.color.rgb = col; r.font.name = HEAD
+
+    # (name, left, top, box_w, box_h) — CatoClient is a bit larger (the focal joke).
+    specs = [
+        ("lego_pieces.jpg",       Inches(0.45), Inches(1.7), Inches(4.0), Inches(3.6)),
+        ("m16_parts_cropped.png", Inches(4.66), Inches(1.7), Inches(4.0), Inches(3.6)),
+        ("cato-client.png",       Inches(8.70), Inches(1.5), Inches(4.3), Inches(4.2)),
+    ]
+    pics = []
+    for name, left, top, bw, bh in specs:
+        p = asset(name)
+        if os.path.exists(p):
+            pics.append(add_pic_fit(s, p, left, top, bw, bh))
+        else:
+            box = rect(s, left, top, bw, bh, fill=BOX_FILL, line=LINE_DIM)
+            txb(s, f"[ add {name} ]", left, top + bh / 2, bw, Inches(0.5),
+                size=12, color=MUTED, align=PP_ALIGN.CENTER)
+            pics.append(box)
+
+    # Little green heart on the CatoClient (the "...but I love it" wink),
+    # near its top-right corner as a badge.
+    heart = s.shapes.add_textbox(Inches(11.75), Inches(1.55), Inches(0.9), Inches(0.8))
+    hp = heart.text_frame.paragraphs[0]
+    hp.alignment = PP_ALIGN.CENTER
+    hr = hp.add_run(); hr.text = "💚"; hr.font.size = Pt(34)
+
+    final = txb(s,
+        "So let's do the same with AI.",
+        Inches(0.55), Inches(5.85), Inches(12.2), Inches(0.8),
+        size=30, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+
+    # Reveal images one per click; the heart pops with the CatoClient; then the line.
+    animate_clicks(s, [[pics[0]], [pics[1]], [pics[2], heart], [final]])
+
     add_notes(s,
-        "⏱ 0:30 | Running: 1:00\n\n"
-        "Show the image silently. Ask the room: 'Does anyone know what this is?'\n"
-        "Let a few people guess. Don't reveal the answer yet.\n"
-        "Say: 'Keep it in mind — we'll come back to it.' Then move on.")
+        "⏱ ~1:00 | Running: ~2:15\n\n"
+        "Continue from 'a geek'. Click through the three images as you talk:\n"
+        "'As a geek, I've always understood things by building them up' (click: Lego),\n"
+        "'breaking them down' (click: M16 disassembled),\n"
+        "'and fixing what's broken' (click: CatoClient... yes, ours too; wink + green heart).\n"
+        "'I've basically been doing this my whole life.'\n"
+        "'So now let's do the same with AI:' (click: closing line) 'take it apart,\n"
+        " and learn to think with it and use it better.'\n\n"
+        "Click-to-reveal uses PowerPoint 'Appear' animations; confirm playback in\n"
+        "PowerPoint/Keynote (it won't show in QuickLook previews).")
+
+
+def s04a_done_before_grid(prs):
+    """4A — We've done this before (concept-card grid variant; HIDDEN backup)"""
+    s = content_slide(prs, "THE INSIGHT", "We've done this before")
+    hide(s)   # kept as a backup; timeline variant is the live slide
+
+    cards = [
+        ("Object-Oriented",       "encapsulation · inheritance · polymorphism"),
+        ("Design Patterns",       "Singleton · Factory · Observer · Strategy"),
+        ("SOLID",                 "SRP · OCP · LSP · ISP · DIP"),
+        ("Functional",            "pure functions · immutability · composition"),
+        ("Cloud / Microservices", "containers · orchestration · IaC"),
+        ("Agile / DevOps",        "CI/CD · sprints · retros"),
+    ]
+    lefts = [Inches(0.45), Inches(4.66), Inches(8.87)]
+    tops  = [Inches(1.9), Inches(3.6)]
+    col_w, card_h = Inches(4.0), Inches(1.5)
+
+    for i, (name, terms) in enumerate(cards):
+        left, top = lefts[i % 3], tops[i // 3]
+        rect(s, left, top, col_w, card_h, fill=BOX_FILL, line=LINE_DIM)
+        txb(s, name, left + Inches(0.22), top + Inches(0.14),
+            col_w - Inches(0.44), Inches(0.5), size=18, bold=True, color=ACCENT)
+        txb(s, terms, left + Inches(0.22), top + Inches(0.66),
+            col_w - Inches(0.44), Inches(0.75), size=13, color=MUTED)
+
+    payoff = txb(s, "We built the language for software. Now let's build one for AI.",
+                 Inches(0.55), Inches(5.55), Inches(12.2), Inches(0.7),
+                 size=22, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+    animate_clicks(s, [[payoff]])
+
+    add_notes(s,
+        "⏱ ~1:30 | Running: ~3:45\n\n"
+        "AI is a new technology. But handling new technology is our home turf.\n"
+        "Every time a new paradigm arrived, WE coined the words that made it thinkable:\n"
+        "object-orientation, design patterns, SOLID, cloud, agile. Thinking of a Singleton\n"
+        "or a Factory isn't hard for an experienced developer; SOLID is second nature. Once\n"
+        "we coined these terms, juniors and seniors alike could think and communicate them.\n"
+        "None of it came from a single vendor; the community built it.\n"
+        "(click) 'We built the language for software. Now let's build one for AI.'\n\n"
+        "Show more than you name: let the grid speak; you only need to mention a few.")
+
+
+def s04b_done_before_timeline(prs):
+    """4B — We've done this before, as a community (timeline; live slide)"""
+    s = content_slide(prs, "", "We've done this before, as a community")
+
+    # Chronologically sorted (community-coined vocabulary, with rough years).
+    milestones = [
+        ("OOP",             "1970s", "encapsulation · inheritance"),
+        ("Design Patterns", "1994",  "Singleton · Factory"),
+        ("Agile",           "2001",  "sprints · retros"),
+        ("SOLID",           "2004",  "SRP · OCP · DIP"),
+        ("Cloud",           "2006",  "containers · microservices"),
+        ("AI ?",            "now",   "we write this"),
+    ]
+    box_w, box_h = Inches(1.82), Inches(1.25)
+    step    = Inches(2.12)
+    x0      = Inches(0.5)
+    box_top = Inches(2.55)
+
+    groups = []
+    for i, (name, year, terms) in enumerate(milestones):
+        left = x0 + step * i
+        last = (i == len(milestones) - 1)
+        shapes = []
+        if i > 0:  # arrow leading into this milestone, revealed with it
+            shapes.append(txb(s, "→",
+                left - (step - box_w) - Inches(0.13), box_top + Inches(0.32),
+                Inches(0.62), Inches(0.6), size=24, color=MUTED, align=PP_ALIGN.CENTER))
+        shapes.append(txb(s, year, left, box_top - Inches(0.5), box_w, Inches(0.4),
+            size=14, bold=True, color=ACCENT if last else MUTED, align=PP_ALIGN.CENTER))
+        shapes.append(rect(s, left, box_top, box_w, box_h,
+            fill=BOX_FILL, line=ACCENT if last else LINE_DIM,
+            line_w=Pt(1.75) if last else Pt(0.75)))
+        shapes.append(txb(s, name, left, box_top + Inches(0.4), box_w, Inches(0.55),
+            size=18, bold=True, color=ACCENT if last else FG, align=PP_ALIGN.CENTER))
+        shapes.append(txb(s, terms, left - Inches(0.12), box_top + box_h + Inches(0.1),
+            box_w + Inches(0.24), Inches(0.7), size=12, color=MUTED, align=PP_ALIGN.CENTER))
+        groups.append(shapes)
+
+    payoff = txb(s, "Every shift, the community coined the words. AI is next.",
+                 Inches(0.55), Inches(5.6), Inches(12.2), Inches(0.7),
+                 size=22, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+    groups[-1].append(payoff)   # payoff lands with the AI milestone
+
+    # Each milestone appears on its own click; the payoff lands with AI.
+    animate_clicks(s, groups)
+
+    add_notes(s,
+        "⏱ ~1:30 | Running: ~3:45\n\n"
+        "AI is new, but handling new technology is home turf for us, as a community.\n"
+        "Walk the timeline as you click:\n"
+        "OOP (1970s), Design Patterns (1994), Agile (2001), SOLID (2004), Cloud (2006)...\n"
+        "each time, WE coined the vocabulary that made the idea thinkable and shareable.\n"
+        "A Singleton or a Factory isn't hard for an experienced developer; SOLID is second\n"
+        "nature. None of it came from a single vendor; the community built the language.\n"
+        "(final click) AI is the next stop, and the words are ours to write:\n"
+        "'Every shift, the community coined the words. AI is next.'\n\n"
+        "Milestones appear one per click; the payoff lands with the AI box. (PowerPoint\n"
+        "'Appear' animations; confirm playback in PowerPoint, not QuickLook.)")
+
+
+def s05_ai_different(prs):
+    """5 — But AI is different: fast and closed"""
+    s = content_slide(prs, "BUT AI IS DIFFERENT", "Fast, and closed")
+
+    img_top, img_h, col_w = Inches(1.9), Inches(3.5), Inches(5.8)
+    if os.path.exists(asset("fast.png")):
+        add_pic_fit(s, asset("fast.png"), Inches(0.3), img_top, col_w, img_h)
+    if os.path.exists(asset("closed.png")):
+        add_pic_fit(s, asset("closed.png"), Inches(7.0), img_top, col_w, img_h)
+
+    rect(s, Inches(6.55), img_top, Pt(1), Inches(4.0), fill=LINE_DIM)
+
+    txb(s, "Fast", Inches(0.3), Inches(5.5), Inches(5.8), Inches(0.6),
+        size=28, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+    txb(s, "Closed", Inches(7.0), Inches(5.5), Inches(5.8), Inches(0.6),
+        size=28, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+
+    payoff = txb(s, "So the language won't come from the vendors. It has to come from us.",
+                 Inches(0.55), Inches(6.25), Inches(12.2), Inches(0.6),
+                 size=18, bold=True, color=FG, align=PP_ALIGN.CENTER)
+    animate_clicks(s, [[payoff]])
+
+    add_notes(s,
+        "⏱ ~1:30 | Running: ~5:15\n\n"
+        "There's a catch, two of them.\n"
+        "FAST: AI moves faster than we can build shared understanding. New models and terms\n"
+        "every few weeks.\n"
+        "CLOSED: it's vendor-driven and built for lock-in. OpenAI, Anthropic, Google, Meta\n"
+        "all compete; none is incentivized to give us a shared vocabulary.\n"
+        "(click) 'So the language won't come from the vendors. It has to come from us.'\n"
+        "That is exactly what the rest of this talk does, with three words.")
 
 
 def s04_why_hard(prs):
-    """4 — Why AI feels hard"""
+    """4 — Why AI feels hard (superseded by s05_ai_different; kept for reference)"""
     s = content_slide(prs, "THE PROBLEM", "Why AI feels hard")
 
     img_top = Inches(1.95)
@@ -999,10 +1300,11 @@ def build():
     prs = new_prs()
 
     s01_title(prs)
-    s02_about_me(prs)
-    s03_pin_mystery(prs)
-    s04_why_hard(prs)
-    s05_common_language(prs)
+    s02_intro_me(prs)
+    s03_geek_origin(prs)
+    s04a_done_before_grid(prs)       # variant A1 — pick grid or timeline, remove the other
+    s04b_done_before_timeline(prs)   # variant A2
+    s05_ai_different(prs)
     s06_pin_reveal(prs)
     s07a_roadmap_llm(prs)
     s07b_roadmap_agent(prs)
