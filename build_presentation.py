@@ -19,6 +19,7 @@ from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
+from pptx.enum.shapes import MSO_SHAPE
 from pptx.oxml.ns import qn, nsdecls
 from pptx.oxml import parse_xml
 
@@ -152,6 +153,23 @@ def rect(slide, left, top, width, height, fill=None, line=None, line_w=Pt(1)):
     else:
         shp.line.color.rgb = line
         shp.line.width = line_w
+    return shp
+
+
+def oval(slide, left, top, width, height, fill=None, line=None, line_w=Pt(1)):
+    """Add an ellipse/circle shape (mirrors rect())."""
+    shp = slide.shapes.add_shape(MSO_SHAPE.OVAL, left, top, width, height)
+    if fill is None:
+        shp.fill.background()
+    else:
+        shp.fill.solid()
+        shp.fill.fore_color.rgb = fill
+    if line is None:
+        shp.line.fill.background()
+    else:
+        shp.line.color.rgb = line
+        shp.line.width = line_w
+    shp.shadow.inherit = False
     return shp
 
 
@@ -326,6 +344,19 @@ def s01_title(prs):
     s = add(prs, "Cover Slide Black")
     set_ph(s, 0, "Understanding AI for Geeks", color=FG)
     del_ph(s, 12)   # no subtitle
+
+    # Three "geek" AI agents (Claude, Copilot, Cursor) as silly tilted stickers
+    geeks = [
+        ("geek_claude_t.png",   0.75, 4.55, 1.75, -13),
+        ("geek_cursot_t.png",   5.30, 5.20, 1.65,  12),
+        ("geek_copilot_t.png", 10.35, 4.70, 1.45, -16),
+    ]
+    for name, l, t, wd, rot in geeks:
+        p = asset(name)
+        if os.path.exists(p):
+            pic = s.shapes.add_picture(p, Inches(l), Inches(t), width=Inches(wd))
+            pic.rotation = rot
+
     add_notes(s,
         "⏱ 0:30 | Running: 0:30\n\n"
         "Let the slide sit for a moment. No need to say much.\n"
@@ -664,6 +695,67 @@ def s05_common_language(prs):
         "which vendor, language, or framework you use.\n\n"
         "That's what we're doing today: LLM, Agent, Context — our attempt at that\n"
         "vocabulary for AI. Simple, transferable, community-owned.")
+
+
+def s07_breakdown_rings(prs):
+    """7 — Break AI into three pieces (concentric rings, built center outward)"""
+    s = image_slide(prs)
+
+    # Centered title
+    t = s.shapes.add_textbox(Inches(0.55), Inches(0.45), Inches(12.2), Inches(0.9))
+    tp = t.text_frame.paragraphs[0]
+    tp.alignment = PP_ALIGN.CENTER
+    tr = tp.add_run(); tr.text = "We'll break AI into three pieces"
+    tr.font.size = Pt(34); tr.font.bold = True; tr.font.color.rgb = FG; tr.font.name = HEAD
+
+    cx, cy = 6.66, 3.8   # inches
+
+    def circle(r, **kw):
+        return oval(s, Inches(cx - r), Inches(cy - r), Inches(r * 2), Inches(r * 2), **kw)
+
+    def label(text, top, size, color, color_w=4.0):
+        return txb(s, text, Inches(cx - color_w / 2), Inches(top),
+                   Inches(color_w), Inches(0.5), size=size, bold=True,
+                   color=color, align=PP_ALIGN.CENTER)
+
+    # Drawn back-to-front so the filled core stays visible on top.
+    context_ring = circle(2.35, line=GOLD, line_w=Pt(2.5))
+    agent_ring   = circle(1.60, line=SKY,  line_w=Pt(2.5))
+    llm_circle   = circle(0.85, fill=ACCENT)
+
+    # Context Management on two lines so it reads large without overflowing the ring.
+    context_lbl = s.shapes.add_textbox(Inches(cx - 1.6), Inches(1.5), Inches(3.2), Inches(0.85))
+    cmtf = context_lbl.text_frame
+    cmtf.word_wrap = True
+    for j, line in enumerate(["Context", "Management"]):
+        p = cmtf.paragraphs[0] if j == 0 else cmtf.add_paragraph()
+        p.alignment = PP_ALIGN.CENTER
+        r = p.add_run(); r.text = line
+        r.font.size = Pt(20); r.font.bold = True; r.font.color.rgb = GOLD; r.font.name = FONT
+
+    agent_lbl = label("Agent", 2.45, 24, SKY)
+    llm_lbl   = label("LLM",   3.5,  26, BG, color_w=2.0)
+
+    closing = txb(s, "We'll take each one in turn.",
+                  Inches(0.55), Inches(6.35), Inches(12.2), Inches(0.5),
+                  size=18, color=MUTED, align=PP_ALIGN.CENTER)
+
+    # Reveal center outward: LLM, then Agent, then Context Management (+ closing line).
+    animate_clicks(s, [
+        [llm_circle, llm_lbl],
+        [agent_ring, agent_lbl],
+        [context_ring, context_lbl, closing],
+    ])
+
+    add_notes(s,
+        "⏱ ~0:40 | Running: ~6:00\n\n"
+        "So let's break AI into three pieces, built center outward:\n"
+        "(click) LLM, the core engine.\n"
+        "(click) Agent: an LLM wrapped with tools and a loop, so it can take actions.\n"
+        "(click) Context Management: everything we feed and manage around it; the real lever.\n"
+        "Notice the nesting: an Agent contains an LLM, and Context Management surrounds the\n"
+        "whole thing. 'We'll take each one in turn' over the next three sections.\n\n"
+        "Rings reveal center outward on click (PowerPoint 'Appear'; confirm in PowerPoint).")
 
 
 def s06_pin_reveal(prs):
@@ -1319,10 +1411,7 @@ def build():
     s04a_done_before_grid(prs)       # variant A1 — pick grid or timeline, remove the other
     s04b_done_before_timeline(prs)   # variant A2
     s05_ai_different(prs)
-    s06_pin_reveal(prs)
-    s07a_roadmap_llm(prs)
-    s07b_roadmap_agent(prs)
-    s07c_roadmap_full(prs)
+    s07_breakdown_rings(prs)         # replaces pin-reveal + the layer-stack roadmap
     s08a_llm_blackbox(prs)
     s08a2_llm_blackbox_reveal(prs)
     s08b_autocomplete(prs)
