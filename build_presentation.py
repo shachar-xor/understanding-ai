@@ -698,7 +698,8 @@ def s05_common_language(prs):
 
 
 def s07_breakdown_rings(prs):
-    """7 — Break AI into three pieces (concentric rings, built center outward)"""
+    """7 — Break AI into three EQUAL pieces (segmented ring, built arc by arc)"""
+    import math
     s = image_slide(prs)
 
     # Centered title
@@ -708,54 +709,60 @@ def s07_breakdown_rings(prs):
     tr = tp.add_run(); tr.text = "We'll break AI into three pieces"
     tr.font.size = Pt(34); tr.font.bold = True; tr.font.color.rgb = FG; tr.font.name = HEAD
 
-    cx, cy = 6.66, 3.8   # inches
+    cx, cy = 6.66, 4.1          # center, inches
+    side = 5.0                  # square holding the ring arc images
+    Lr = 2.55                   # label radius (ring outer radius ~2.0")
 
-    def circle(r, **kw):
-        return oval(s, Inches(cx - r), Inches(cy - r), Inches(r * 2), Inches(r * 2), **kw)
+    def polar_label(text, ang, size, color, two_line=False, w=2.6, rad=None):
+        rad_ = rad if rad is not None else Lr
+        x = cx + rad_ * math.cos(math.radians(ang))
+        y = cy + rad_ * math.sin(math.radians(ang))
+        box = s.shapes.add_textbox(Inches(x - w / 2), Inches(y - 0.45), Inches(w), Inches(0.9))
+        tf = box.text_frame; tf.word_wrap = True
+        lines = text.split("\n") if two_line else [text]
+        for j, ln in enumerate(lines):
+            p = tf.paragraphs[0] if j == 0 else tf.add_paragraph()
+            p.alignment = PP_ALIGN.CENTER
+            rr = p.add_run(); rr.text = ln
+            rr.font.size = Pt(size); rr.font.bold = True
+            rr.font.color.rgb = color; rr.font.name = FONT
+        return box
 
-    def label(text, top, size, color, color_w=4.0):
-        return txb(s, text, Inches(cx - color_w / 2), Inches(top),
-                   Inches(color_w), Inches(0.5), size=size, bold=True,
-                   color=color, align=PP_ALIGN.CENTER)
+    # Three equal arcs (pre-rendered images), placed on the same square so they align.
+    def arc(name):
+        return s.shapes.add_picture(asset(name),
+            Inches(cx - side / 2), Inches(cy - side / 2), Inches(side), Inches(side))
+    llm_w     = arc("ring_llm.png")       # top (mint)
+    agent_w   = arc("ring_agent.png")     # lower-left (sky)
+    context_w = arc("ring_context.png")   # lower-right (gold)
 
-    # Drawn back-to-front so the filled core stays visible on top.
-    context_ring = circle(2.35, line=GOLD, line_w=Pt(2.5))
-    agent_ring   = circle(1.60, line=SKY,  line_w=Pt(2.5))
-    llm_circle   = circle(0.85, fill=ACCENT)
+    # "AI" in the (transparent) center
+    txb(s, "AI", Inches(cx - 0.9), Inches(cy - 0.45), Inches(1.8), Inches(0.9),
+        size=40, bold=True, color=FG, align=PP_ALIGN.CENTER)
 
-    # Context Management on two lines so it reads large without overflowing the ring.
-    context_lbl = s.shapes.add_textbox(Inches(cx - 1.6), Inches(1.5), Inches(3.2), Inches(0.85))
-    cmtf = context_lbl.text_frame
-    cmtf.word_wrap = True
-    for j, line in enumerate(["Context", "Management"]):
-        p = cmtf.paragraphs[0] if j == 0 else cmtf.add_paragraph()
-        p.alignment = PP_ALIGN.CENTER
-        r = p.add_run(); r.text = line
-        r.font.size = Pt(20); r.font.bold = True; r.font.color.rgb = GOLD; r.font.name = FONT
-
-    agent_lbl = label("Agent", 2.45, 24, SKY)
-    llm_lbl   = label("LLM",   3.5,  26, BG, color_w=2.0)
+    llm_lbl     = polar_label("LLM", 270, 24, ACCENT, w=2.0, rad=2.4)
+    agent_lbl   = polar_label("Agent", 150, 24, SKY, w=2.2, rad=2.95)
+    context_lbl = polar_label("Context\nManagement", 30, 20, GOLD, two_line=True, w=2.6, rad=2.95)
 
     closing = txb(s, "We'll take each one in turn.",
-                  Inches(0.55), Inches(6.35), Inches(12.2), Inches(0.5),
+                  Inches(0.55), Inches(6.5), Inches(12.2), Inches(0.45),
                   size=18, color=MUTED, align=PP_ALIGN.CENTER)
 
-    # Reveal center outward: LLM, then Agent, then Context Management (+ closing line).
+    # Reveal arc by arc; center + "AI" stay put as the arcs build around them.
     animate_clicks(s, [
-        [llm_circle, llm_lbl],
-        [agent_ring, agent_lbl],
-        [context_ring, context_lbl, closing],
+        [llm_w, llm_lbl],
+        [agent_w, agent_lbl],
+        [context_w, context_lbl, closing],
     ])
 
     add_notes(s,
         "⏱ ~0:40 | Running: ~6:00\n\n"
-        "So let's break AI into three pieces, built center outward:\n"
+        "AI breaks down into three equal, fundamental pieces. Light them up one at a time:\n"
         "(click) LLM, the core engine.\n"
-        "(click) Agent: an LLM wrapped with tools and a loop, so it can take actions.\n"
-        "(click) Context Management: everything we feed and manage around it; the real lever.\n"
-        "Notice the nesting: an Agent contains an LLM, and Context Management surrounds the\n"
-        "whole thing. 'We'll take each one in turn' over the next three sections.\n\n"
-        "Rings reveal center outward on click (PowerPoint 'Appear'; confirm in PowerPoint).")
+        "(click) Agent: an LLM with tools and a loop, so it can take actions.\n"
+        "(click) Context Management: what we feed and manage around it.\n"
+        "Three equal parts of one whole. 'We'll take each one in turn' over the next sections.\n\n"
+        "Arcs reveal one per click (PowerPoint 'Appear'; confirm in PowerPoint).")
 
 
 def s06_pin_reveal(prs):
