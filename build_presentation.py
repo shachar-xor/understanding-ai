@@ -1317,6 +1317,48 @@ def s08p5_every_letter(prs):
         "letter early can change the entire response.")
 
 
+def s08p6_roleplay(prs):
+    """Property: role-play / persona conditioning. Bridges LLM into Agents.
+
+    Both columns are deliberately 'Role + Capabilities + Task': the wizard's
+    spells and the engineer's terminal are only flavor text here, the model
+    cannot actually use them. That gap is exactly what an agent closes (next
+    section), so the speaker narrates the bridge."""
+    s = content_slide(prs, "LLM", "It can role-play")
+    _divider(s)
+    d20 = add_pic_fit(s, asset("d20.png"), Inches(11.25), Inches(0.45),
+                      Inches(1.75), Inches(1.75))
+
+    # Left: fantasy (D&D)
+    dnd_p = txb(s, '"You are Gandalf, a level 12 wizard.\n'
+                   'Spells: Fireball, Detect Magic, Light.\n'
+                   'A Balrog blocks the bridge. Your move?"',
+                PL_X, Inches(2.55), PL_W, Inches(1.5), size=16, color=FG, font=MONO)
+    dnd_a = txb(s, '→  "I slam my staff down: \'You shall not pass!\' and ready Fireball."',
+                PL_X, Inches(4.45), PL_W, Inches(1.0), size=16, color=ACCENT, font=MONO)
+
+    # Right: real life (professional system prompt)
+    dev_p = txb(s, '"You are a senior software engineer.\n'
+                   'You write clean, secure Python and explain\n'
+                   'your reasoning. Review this for a bug."',
+                PR_X, Inches(2.55), PR_W, Inches(1.5), size=16, color=FG, font=MONO)
+    dev_a = txb(s, '→  "First, the bug: this loop is O(n^2). Here is the fix, then why it works."',
+                PR_X, Inches(4.45), PR_W, Inches(1.0), size=16, color=ACCENT, font=MONO)
+
+    animate_clicks(s, [[d20], [dnd_p], [dnd_a], [dev_p], [dev_a]])
+    add_notes(s,
+        "⏱ 1:00 | Running: ~17:05\n\n"
+        "Say the title, then click: the d20 drops in. 'The geeky kind of role-play.'\n"
+        "Give it a role and it plays along. It is still autocomplete, the role just\n"
+        "steers which words are likely next. Left: a wizard with spells. Right: the\n"
+        "exact same trick doing a real job, a senior engineer persona, which is how\n"
+        "the industry shaped early system prompts. Notice both prompts list a ROLE\n"
+        "and a set of CAPABILITIES. But here those spells and that terminal are just\n"
+        "words, the model cannot actually cast Fireball or run the code. Give the\n"
+        "role REAL tools, and a loop to use them, and you have an agent. That is\n"
+        "exactly where we go next.")
+
+
 def _agent_diagram_slide(prs, eyebrow, title, img_name, notes):
     """Full-bleed agent diagram PNG below the title."""
     s = content_slide(prs, eyebrow, title)
@@ -1792,6 +1834,7 @@ def build():
     s08p3_statistical_predicts(prs)  # property: statistical + predicts, not lookup
     s08p4_subjective_oneletter(prs)  # property: subjective + one letter
     s08p5_every_letter(prs)          # property: one letter changes everything (cat vs car)
+    s08p6_roleplay(prs)              # property: role-play / persona, bridges into Agents
     s09a1_agent_llm(prs)
     s09a2_agent_llm_tools(prs)
     s09a3_agent_loop(prs)
