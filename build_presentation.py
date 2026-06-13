@@ -141,6 +141,26 @@ def txb(slide, text, left, top, width, height,
     return tf_box
 
 
+def txb_runs(slide, segments, left, top, width, height,
+             size=28, bold=False, align=PP_ALIGN.LEFT, font=None):
+    """Single-paragraph text box built from (text, color) segments, so one word
+    can be highlighted in a different color than the rest."""
+    tf_box = slide.shapes.add_textbox(left, top, width, height)
+    tf = tf_box.text_frame
+    tf.word_wrap = True
+    tf.auto_size = MSO_AUTO_SIZE.NONE
+    p = tf.paragraphs[0]
+    p.alignment = align
+    for text, color in segments:
+        run = p.add_run()
+        run.text = text
+        run.font.size = Pt(size)
+        run.font.bold = bold
+        run.font.color.rgb = color or FG
+        run.font.name = font or FONT
+    return tf_box
+
+
 def rect(slide, left, top, width, height, fill=None, line=None, line_w=Pt(1)):
     """Add a rectangle shape."""
     shp = slide.shapes.add_shape(1, left, top, width, height)
@@ -1069,7 +1089,7 @@ def s08_llm_opener(prs):
 
 def s08t_training(prs):
     """Phase 1 — Training (uses llm_training.png)."""
-    s = content_slide(prs, "LLM", "Phase 1 · Training")
+    s = content_slide(prs, "LLM", "Training Stage")
     _phase_breadcrumb(s, active=1)
     pic = s.shapes.add_picture(asset("llm_training.png"),
                                Inches(0.6), Inches(2.15), height=Inches(3.95))
@@ -1097,7 +1117,7 @@ def s08t_training(prs):
 
 def s08op_operation(prs):
     """Phase 2 — Operation: a black box of autocomplete (Cato joke)."""
-    s = content_slide(prs, "LLM", "Phase 2 · Operation")
+    s = content_slide(prs, "LLM", "Operation Stage")
     _phase_breadcrumb(s, active=2)
 
     txb(s, "It just autocompletes text.", Inches(0.55), Inches(1.55), Inches(12.2), Inches(0.5),
@@ -1199,7 +1219,7 @@ def s08p2_knowledge_frozen(prs):
 
 def s08p3_statistical_predicts(prs):
     """Property: statistical (same prompt, different answers) + predicts, not looks up."""
-    s = content_slide(prs, "LLM", "It always answers, even when guessing")
+    s = content_slide(prs, "LLM", "It's not deterministic, it makes guesses")
     _divider(s)
 
     coffee_p = txb(s, '"A good name for a coffee shop: ___"',
@@ -1234,70 +1254,67 @@ def s08p3_statistical_predicts(prs):
 
 
 def s08p4_subjective_oneletter(prs):
-    """Property: subjective + one letter changes everything (cat vs car)."""
-    s = content_slide(prs, "LLM", "Opinionated, and easily nudged")
+    """Property: subjective (opinions) + confidently wrong (hallucination)."""
+    s = content_slide(prs, "LLM", "It can be subjective, it can be wrong")
     _divider(s)
-    left = [_label(s, "Subjective", PL_X, PL_W)]
-    left += _ex(s, PL_X, PBODY_Y, PL_W,
-                '"The best programming\nlanguage is ___"', '"Python"  (it has opinions)',
-                psize=18, ph_in=0.95, asize=18)
-    left += _ex(s, PL_X, Inches(4.35), PL_W,
-                '"The greatest band ever is ___"', '"The Beatles"', psize=18, asize=18)
+    band_p, band_a = _ex(s, PL_X, PBODY_Y, PL_W,
+                         '"The greatest band ever is ___"', '"The Beatles"', psize=18, asize=18)
+    lang_p, lang_a = _ex(s, PL_X, Inches(4.35), PL_W,
+                         '"The best programming\nlanguage is ___"', '"Python"',
+                         psize=18, ph_in=0.95, asize=18)
 
-    right = [_label(s, "One letter changes everything", PR_X, PR_W)]
-    right.append(txb(s, '"A cat walked into a library\nand asked for a book about ___"',
-                     PR_X, PBODY_Y, PR_W, Inches(1.0), size=18, color=FG, font=MONO))
-    right.append(txb(s, '→  "...fish."', PR_X, Inches(3.7), PR_W, Inches(0.45),
-                     size=18, color=ACCENT, font=MONO))
-    right.append(txb(s, '"A car walked into a library..."',
-                     PR_X, Inches(4.35), PR_W, Inches(0.5), size=18, color=FG, font=MONO))
-    right.append(txb(s, '→  "...roads and highways."', PR_X, Inches(4.95), PR_W, Inches(0.45),
-                     size=18, color=SKY, font=MONO))
+    tulsa_p = txb(s, '"Who won the 1987 Tulsa\nchess championship?"',
+                  PR_X, PBODY_Y, PR_W, Inches(1.0), size=18, color=FG, font=MONO)
+    tulsa_a = txb(s, '→  "David Harrington, a local\n    teacher who..."',
+                  PR_X, Inches(3.8), PR_W, Inches(0.95), size=18, color=ACCENT, font=MONO)
+    tulsa_note = txb(s, "There was no such championship.\nThe answer is wrong because the\nquestion is wrong.",
+                     PR_X, Inches(5.05), PR_W, Inches(1.2), size=17, color=MUTED)
 
-    bottom = txb(s, "No single truth. And one token can flip the whole thing.",
-                 PL_X, PBOTTOM_Y, Inches(12.2), Inches(0.5),
-                 size=18, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
-    animate_clicks(s, [left, right, [bottom]])
+    animate_clicks(s, [
+        [band_p, lang_p],   # left: both prompts together
+        [band_a],           # left answers one by one
+        [lang_a],
+        [tulsa_p],          # right prompt
+        [tulsa_a],          # the confident (wrong) answer
+        [tulsa_note],       # the reveal: the question itself was bogus
+    ])
     add_notes(s,
         "⏱ 1:30 | Running: ~15:05\n\n"
         "Left: ask it for 'the best' anything and it answers with an opinion, the\n"
         "majority view of its training text. There is no single truth in there.\n"
-        "Right: cat versus car, one letter, and the whole completion changes. It\n"
-        "reads every token; each one steers the guess. This is why prompt wording\n"
-        "matters so much, one word early can change the entire response.")
+        "Right: there was no 1987 Tulsa chess championship. The premise is false,\n"
+        "so the confident answer is false too. It does not push back on a bad\n"
+        "question, it just completes it. Tone is not correctness.")
 
 
-def s08p5_confident_nomemory(prs):
-    """Property: confidently wrong (hallucination) + no memory; bridges to Context."""
-    s = content_slide(prs, "LLM", "Two things to never forget")
-    _divider(s)
-    left = [_label(s, "Confidently wrong (hallucination)", PL_X, PL_W)]
-    left.append(txb(s, '"Who won the 1987 Tulsa\nchess championship?"',
-                    PL_X, PBODY_Y, PL_W, Inches(1.0), size=18, color=FG, font=MONO))
-    left.append(txb(s, '→  "David Harrington, a local\n    teacher who..."',
-                    PL_X, Inches(3.8), PL_W, Inches(0.95), size=18, color=ACCENT, font=MONO))
-    left.append(txb(s, "He does not exist. It never says\n\"I don't know\" by default.",
-                    PL_X, Inches(5.05), PL_W, Inches(0.9), size=17, color=MUTED))
+def s08p5_every_letter(prs):
+    """Property: one letter changes everything (cat vs car), full slide."""
+    s = content_slide(prs, "LLM", "Every letter counts")
 
-    right = [_label(s, "No memory between calls", PR_X, PR_W)]
-    right.append(txb(s, "Every call starts from zero.",
-                     PR_X, PBODY_Y, PR_W, Inches(0.6), size=22, bold=True, color=FG))
-    right.append(txb(s, "It only knows what is in the prompt\n"
-                        "right now. Close the tab and it\nforgets everything.",
-                     PR_X, Inches(3.5), PR_W, Inches(1.4), size=20, color=MUTED))
+    CW = Inches(12.2)
+    # Top: cat
+    cat_p = txb_runs(s, [('"A ', FG), ('cat', ACCENT),
+                         (' walked into a library and asked for a book about ___"', FG)],
+                     PL_X, Inches(2.25), CW, Inches(0.6),
+                     size=22, font=MONO, align=PP_ALIGN.CENTER)
+    cat_a = txb(s, '→  "...fish."', PL_X, Inches(3.15), CW, Inches(0.5),
+                size=24, bold=True, color=ACCENT, font=MONO, align=PP_ALIGN.CENTER)
+    # Bottom: car
+    car_p = txb_runs(s, [('"A ', FG), ('car', SKY),
+                         (' walked into a library and asked for a book about ___"', FG)],
+                     PL_X, Inches(4.7), CW, Inches(0.6),
+                     size=22, font=MONO, align=PP_ALIGN.CENTER)
+    car_a = txb(s, '→  "...roads and highways."', PL_X, Inches(5.6), CW, Inches(0.5),
+                size=24, bold=True, color=SKY, font=MONO, align=PP_ALIGN.CENTER)
 
-    bridge = txb(s, "Which is exactly why its context matters.   (next)",
-                 PL_X, PBOTTOM_Y, Inches(12.2), Inches(0.5),
-                 size=19, bold=True, color=GOLD, align=PP_ALIGN.CENTER)
-    animate_clicks(s, [left, right, [bridge]])
+    animate_clicks(s, [[cat_p, car_p], [cat_a], [car_a]])
     add_notes(s,
-        "⏱ 1:30 | Running: ~16:35\n\n"
-        "Two cautions to carry forward. Left: when it has no good data it still\n"
-        "completes, confidently. David Harrington is a plausible name and story,\n"
-        "stated with zero hesitation. Tone is not correctness, verify specifics.\n"
-        "Right: it has no memory. Every call starts from zero, it only knows what\n"
-        "is in the prompt. Close the tab and it forgets you. That is the perfect\n"
-        "bridge to the next piece: managing what goes into its context.")
+        "⏱ 1:00 | Running: ~16:05\n\n"
+        "Same sentence, one letter apart: cat versus car. Read the first one, let\n"
+        "the room guess, reveal 'fish'. Then change a single letter and the whole\n"
+        "completion changes to 'roads and highways'. It reads every token, and each\n"
+        "one steers the guess. This is why prompt wording matters so much: one\n"
+        "letter early can change the entire response.")
 
 
 def _agent_diagram_slide(prs, eyebrow, title, img_name, notes):
@@ -1635,6 +1652,48 @@ def s10c_ecosystem(prs):
         "once and you can evaluate any new tool by asking how it manages context.")
 
 
+def s10e_ideas_spectrum(prs):
+    """10e — Where ideas live: world → you, and how each tier reaches the model."""
+    s = content_slide(prs, "WHERE IDEAS LIVE", "From the world's ideas to yours")
+
+    full = (Inches(0), Inches(0), Inches(13.333), Inches(7.5))
+    s.shapes.add_picture(asset("ideas_base.png"), *full)      # static stage (icons + labels)
+    w_band  = s.shapes.add_picture(asset("band_weights.png"), *full)
+    sk_band = s.shapes.add_picture(asset("band_skills.png"),  *full)
+    ag_band = s.shapes.add_picture(asset("band_agents.png"),  *full)
+
+    # Bottom axis (crisp pptx, revealed last): free on the left, your work on the right.
+    ax_y  = Inches(6.35)
+    shaft = rect(s, Inches(1.0), ax_y, Inches(10.9), Inches(0.035), fill=MUTED)
+    head_t = s.shapes.add_shape(MSO_SHAPE.ISOSCELES_TRIANGLE,
+                                Inches(11.82), ax_y - Inches(0.125), Inches(0.28), Inches(0.28))
+    head_t.rotation = 90
+    head_t.fill.solid(); head_t.fill.fore_color.rgb = MUTED
+    head_t.line.fill.background()
+    head_t.shadow.inherit = False
+    lbl_l = txb(s, "already known, free", Inches(1.0), Inches(5.95), Inches(5.0), Inches(0.4),
+                size=15, color=MUTED)
+    lbl_r = txb(s, "you must supply it", Inches(7.0), Inches(5.95), Inches(4.9), Inches(0.4),
+                size=16, bold=True, color=ACCENT, align=PP_ALIGN.RIGHT)
+
+    # Reveal one band per click; the punchline axis lands last.
+    animate_clicks(s, [[w_band], [sk_band], [ag_band], [shaft, head_t, lbl_l, lbl_r]])
+
+    add_notes(s,
+        "⏱ 1:15 | Running: 26:45\n\n"
+        "Zoom out. Every idea the AI uses sits somewhere on this line, from what the\n"
+        "whole world shares (left) to what only you know (right). The more common the\n"
+        "idea, the more likely it's already baked into the weights, for free. The more\n"
+        "specific to you, the more YOU have to hand it over.\n\n"
+        "Watch the mechanisms overlap: weights cover the world and your industry, then\n"
+        "fade out over Cato. Skills carry the middle (open-source, company, private).\n"
+        "Agents lean right, into your team and you. None maps to a single column, and\n"
+        "the boundaries move: every model generation pushes weights further right, and\n"
+        "every skill or note you write pushes your knowledge further left, into reach.\n\n"
+        "The takeaway is the bottom arrow: the further right you go, the more the work\n"
+        "is yours. And that work is exactly skills, agents, and context.")
+
+
 def s10d_layer_summary(prs):
     """10d — Three-layer summary + agent diagram"""
     s = content_slide(prs, "PUTTING IT TOGETHER", "The three layers")
@@ -1732,7 +1791,7 @@ def build():
     s08p2_knowledge_frozen(prs)      # property: knowledge + frozen in time
     s08p3_statistical_predicts(prs)  # property: statistical + predicts, not lookup
     s08p4_subjective_oneletter(prs)  # property: subjective + one letter
-    s08p5_confident_nomemory(prs)    # property: confidently wrong + no memory (→ Context)
+    s08p5_every_letter(prs)          # property: one letter changes everything (cat vs car)
     s09a1_agent_llm(prs)
     s09a2_agent_llm_tools(prs)
     s09a3_agent_loop(prs)
@@ -1746,6 +1805,7 @@ def build():
     s10a_context_problem(prs)
     s10b_skills_filesystem(prs)
     s10c_ecosystem(prs)
+    s10e_ideas_spectrum(prs)         # zoom out: world → you, and how each tier reaches the model
     s10d_layer_summary(prs)
     s11_tips(prs)
     s12_thanks(prs)
