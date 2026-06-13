@@ -461,16 +461,16 @@ Thank you. Happy to take questions."
 
 ### Timing summary
 
-| Section | Slides | Approx. time |
-|---|---|---|
-| Intro & framing | 1-6 | ~6:00 |
-| Layer 1: LLM | 7-16 | ~10:20 |
-| Layer 2: Agent | 17-29 | ~10:55 |
-| Layer 3: Context Management | 30-33 | ~5:30 |
-| Wrap-up & takeaways | 34-36 | ~3:30 |
-| **Body total (36 slides)** | | **~36:15** |
-| **Target slot** | | **45:00** |
-| **Headroom to fill** | | **~8:45** |
+| Section | Slides | Duration | Runs from → to |
+|---|---|---|---|
+| Intro | 1-6 | ~6:00 | 0:00 → 6:00 |
+| LLM | 7-16 | ~10:20 | 6:00 → 16:20 |
+| Agent | 17-29 | ~10:55 | 16:20 → 27:15 |
+| Context | 30-33 | ~5:30 | 27:15 → 32:45 |
+| Tips | 34-36 | ~3:30 | 32:45 → 36:15 |
+| **Total (36 slides)** | | **~36:15** | |
+| **Target slot** | | **45:00** | |
+| **Headroom to fill** | | **~8:45** | |
 
 ### How many more slides can I add?
 

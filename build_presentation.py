@@ -1854,32 +1854,22 @@ def s10a2_context_moves(prs):
 
 def s10b_skills_filesystem(prs):
     """Skills: the worked example of offload-to-a-file / load-on-demand."""
-    s = content_slide(prs, "CONTEXT MANAGEMENT",
-                      "Skills: offload to a file, load on demand")
+    s = content_slide(prs, "CONTEXT MANAGEMENT", "Skills")
     txb(s, "A skill is a markdown file: a short description, then the content.",
-        Inches(0.55), Inches(2.0), Inches(12), Inches(0.6), size=24, bold=True, color=FG)
-    txb(s, "The agent keeps only the description in context. When the task needs it,\n"
-           "it loads the rest and follows it. A new capability, no context bloat.",
-        Inches(0.55), Inches(2.65), Inches(12), Inches(0.8), size=18, color=MUTED)
+        Inches(0.55), Inches(2.15), Inches(12.2), Inches(0.6),
+        size=26, bold=True, color=FG, align=PP_ALIGN.CENTER)
     code_block(s,
         'name: commit\n'
-        'description: Use when the user wants to create a git commit\n'
+        'description: Use when the user wants to make a git commit\n'
         '---\n'
-        'Stage the changes, write a message, run hooks, then commit...',
-        Inches(0.55), Inches(3.55), Inches(12), Inches(1.25), size=15)
+        '1. Stage the relevant changes with git add\n'
+        '2. Write a short, clear commit message\n'
+        '3. Run the pre-commit hooks, fix any failures\n'
+        '4. Commit, then show the result with git log',
+        Inches(1.4), Inches(3.15), Inches(10.53), Inches(2.85), size=20)
     txb(s, "description stays in context  ·  body loads only when needed",
-        Inches(0.55), Inches(4.9), Inches(12), Inches(0.4),
-        size=14, color=MUTED, italic=True)
-    txb(s, "Why this matters:", Inches(0.55), Inches(5.45), Inches(4), Inches(0.45),
-        size=16, bold=True, color=ACCENT)
-    y = Inches(5.9)
-    for b in ["Load / unload on demand  :  keep the context lean",
-              "Share with colleagues     :  put skills in a repo",
-              "Community skills          :  use what others built",
-              "Vendor-independent        :  just text files"]:
-        txb(s, f"→  {b}", Inches(0.55), y, Inches(12), Inches(0.38),
-            size=15, color=FG, font=MONO)
-        y += Inches(0.38)
+        Inches(0.55), Inches(6.25), Inches(12.2), Inches(0.5),
+        size=18, color=MUTED, italic=True, align=PP_ALIGN.CENTER)
     add_notes(s,
         "⏱ 1:15 | Running: ~25:45\n\n"
         "The cleanest offload-to-a-file: a skill is literally a markdown file, a short\n"
@@ -1893,76 +1883,236 @@ def s10b_skills_filesystem(prs):
 def s10c_ecosystem(prs):
     """10c: the ecosystem, many names for context management."""
     s = content_slide(prs, "CONTEXT MANAGEMENT",
-                      "The ecosystem: different names, same idea")
-    txb(s, "Once you see it, you can't unsee it:",
+                      "Every vendor has its own tools")
+    txb(s, "Different names, same job: deciding what goes in the window.",
         Inches(0.55), Inches(2.0), Inches(12), Inches(0.5), size=20, color=MUTED)
     y = Inches(2.65)
     for name, desc in [
-        ("Cursor rules",                "Project-level instructions loaded into every prompt"),
-        ("Claude Projects",             "Persistent context shared across conversations"),
-        ("GitHub Copilot instructions", "Repo-level context injected into the coding agent"),
-        ("MCP servers",                 "Live data sources pulled into context on demand"),
-        ("LangChain / LlamaIndex",      "Frameworks that manage context routing at scale"),
+        ("Claude Code",    "/compact to compress, CLAUDE.md as persistent memory"),
+        ("Cursor",         ".cursor/rules + codebase index, loaded into each prompt"),
+        ("ChatGPT",        "Memory and Projects: saved facts, per-project workspace"),
+        ("GitHub Copilot", "copilot-instructions.md: repo context for the agent"),
+        ("Gemini",         "Huge context window, plus context caching to reuse it"),
     ]:
-        txb(s, name, Inches(0.55), y, Inches(4.5), Inches(0.48),
+        txb(s, name, Inches(0.55), y, Inches(4.2), Inches(0.48),
             size=17, bold=True, color=ACCENT)
-        txb(s, desc, Inches(5.2), y + Inches(0.04), Inches(7.6), Inches(0.44),
+        txb(s, desc, Inches(4.9), y + Inches(0.04), Inches(7.9), Inches(0.44),
             size=16, color=FG)
         y += Inches(0.62)
-    txb(s, "Some are vendor-specific. Some are open. All are context management.",
+    txb(s, "Each vendor ships its own utilities, with different names and polish.",
         Inches(0.55), Inches(6.0), Inches(12), Inches(0.5),
         size=17, color=MUTED, align=PP_ALIGN.CENTER)
-    txb(s, "Learn the concept once. Apply it everywhere.",
+    txb(s, "Understanding and managing the context stays on us.",
         Inches(0.55), Inches(6.55), Inches(12), Inches(0.5),
         size=18, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
     add_notes(s,
         "⏱ 1:30 | Running: 25:30\n\n"
-        "You've used some of these already: Cursor rules, Claude Projects, Copilot\n"
-        "instructions, MCP, LangChain/LlamaIndex. Different names, vendors, polish,\n"
-        "all answering one question: what goes in the context window? Learn the concept\n"
-        "once and you can evaluate any new tool by asking how it manages context.")
+        "Every vendor wraps context management in its own tools: Claude Code has /compact\n"
+        "and CLAUDE.md, Cursor has rules plus a codebase index, ChatGPT has Memory and\n"
+        "Projects, Copilot has its instructions file, Gemini leans on a huge window plus\n"
+        "context caching. Different names and polish, one job: what goes in the window.\n"
+        "But the tools only assist, the responsibility to understand and manage the\n"
+        "context is on us.")
+
+
+def s10r_so_this_is_ai(prs):
+    """Recap: the three-piece ring (smaller, left) -> "but, where does it leave us?" """
+    import math
+    s = content_slide(prs, "THE WHOLE PICTURE", "So this is AI")
+
+    # Ring graphic from slide 7, shrunk and shifted to the left half.
+    cx, cy = 3.55, 4.45         # center, inches
+    side = 4.0                  # square holding the ring arc images
+
+    def polar_label(text, ang, size, color, two_line=False, w=2.6, rad=2.0):
+        x = cx + rad * math.cos(math.radians(ang))
+        y = cy + rad * math.sin(math.radians(ang))
+        box = s.shapes.add_textbox(Inches(x - w / 2), Inches(y - 0.4), Inches(w), Inches(0.8))
+        tf = box.text_frame; tf.word_wrap = True
+        lines = text.split("\n") if two_line else [text]
+        for j, ln in enumerate(lines):
+            p = tf.paragraphs[0] if j == 0 else tf.add_paragraph()
+            p.alignment = PP_ALIGN.CENTER
+            rr = p.add_run(); rr.text = ln
+            rr.font.size = Pt(size); rr.font.bold = True
+            rr.font.color.rgb = color; rr.font.name = FONT
+        return box
+
+    def arc(name):
+        return s.shapes.add_picture(asset(name),
+            Inches(cx - side / 2), Inches(cy - side / 2), Inches(side), Inches(side))
+    arc("ring_llm.png")
+    arc("ring_agent.png")
+    arc("ring_context.png")
+
+    txb(s, "AI", Inches(cx - 0.8), Inches(cy - 0.4), Inches(1.6), Inches(0.8),
+        size=32, bold=True, color=FG, align=PP_ALIGN.CENTER)
+    polar_label("LLM", 270, 19, ACCENT, w=1.8, rad=1.95)
+    polar_label("Agent", 150, 19, SKY, w=2.0, rad=2.35)
+    polar_label("Context\nManagement", 30, 16, GOLD, two_line=True, w=2.4, rad=2.35)
+
+    # Right side: the turn. "but," then the human question, revealed on clicks.
+    but = txb(s, "but,", Inches(7.4), Inches(2.7), Inches(5.4), Inches(0.9),
+              size=44, bold=True, color=MUTED)
+    q = txb(s, "where does it leave us, humans?",
+            Inches(7.4), Inches(3.7), Inches(5.5), Inches(2.0),
+            size=34, bold=True, color=GOLD)
+
+    animate_clicks(s, [[but], [q]])
+
+    add_notes(s,
+        "⏱ ~0:30 | Running: 26:00\n\n"
+        "Recap the whole picture: this is AI, three pieces working together,\n"
+        "LLM, Agent, Context Management.\n"
+        "(click) 'but,' ... let it land.\n"
+        "(click) where does it leave us, humans? Bridge into the closing part:\n"
+        "what stays our job, what our value is.\n\n"
+        "Ring visible from start; 'but,' and the question each reveal on a click.")
+
+
+def s10k_kasparov(prs):
+    """Kasparov / centaur story in one slide, revealed in four clicks."""
+    s = content_slide(prs, "", "Learning from the past")
+
+    xs = [Inches(0.55), Inches(4.75), Inches(8.95)]
+    col_w = Inches(3.83)
+    rect(s, Inches(4.6), Inches(1.85), Pt(1), Inches(3.95), fill=LINE_DIM)
+    rect(s, Inches(8.8), Inches(1.85), Pt(1), Inches(3.95), fill=LINE_DIM)
+
+    # ── Beat 1: 1997, the machine won (Deep Blue photo) ──
+    g1 = []
+    g1.append(txb(s, "1997", xs[0], Inches(1.85), col_w, Inches(0.85),
+                  size=22, bold=True, color=CORAL, align=PP_ALIGN.CENTER))
+    g1.append(add_pic_fit(s, asset("deep_blue.jpg"), xs[0], Inches(2.7), col_w, Inches(2.2)))
+    g1.append(txb(s, "Deep Blue beats the world champion.",
+                  xs[0], Inches(4.95), col_w, Inches(0.85),
+                  size=17, bold=True, color=FG, align=PP_ALIGN.CENTER))
+
+    # ── Beat 2: the reframe (Kasparov photo) ──
+    g2 = []
+    g2.append(txb(s, "Kasparov's response:\nAdvanced Chess", xs[1], Inches(1.85), col_w, Inches(0.85),
+                  size=19, bold=True, color=SKY, align=PP_ALIGN.CENTER))
+    g2.append(add_pic_fit(s, asset("kasparov.jpg"), xs[1], Inches(2.7), col_w, Inches(2.2)))
+    g2.append(txb(s, "Human + machine, on the same side.",
+                  xs[1], Inches(4.95), col_w, Inches(0.85),
+                  size=17, bold=True, color=FG, align=PP_ALIGN.CENTER))
+
+    # ── Beat 3: 2005 freestyle (illustration: 2 amateurs + 3 home PCs) ──
+    g3 = []
+    g3.append(txb(s, "2005", xs[2], Inches(1.85), col_w, Inches(0.85),
+                  size=22, bold=True, color=GOLD, align=PP_ALIGN.CENTER))
+    g3.append(add_pic_fit(s, asset("freestyle_team.png"), xs[2], Inches(2.7), col_w, Inches(2.2)))
+    g3.append(txb(s, "2 amateurs + 3 home PCs beat grandmasters and supercomputers.",
+                  xs[2], Inches(4.95), col_w, Inches(0.85),
+                  size=17, bold=True, color=FG, align=PP_ALIGN.CENTER))
+
+    # ── Beat 4: Kasparov's conclusion (banner) ──
+    g4 = []
+    g4.append(rect(s, Inches(0.55), Inches(6.0), Inches(12.23), Inches(1.15),
+                   fill=BOX_FILL, line=ACCENT, line_w=Pt(1.5)))
+    g4.append(txb(s, "Weak human + machine + a better process  >  a strong machine alone.",
+                  Inches(0.8), Inches(6.18), Inches(11.7), Inches(0.6),
+                  size=22, bold=True, color=ACCENT, align=PP_ALIGN.CENTER))
+    g4.append(txb(s, "Garry Kasparov's conclusion: the edge is the partnership, not raw power.",
+                  Inches(0.8), Inches(6.66), Inches(11.7), Inches(0.4),
+                  size=15, italic=True, color=MUTED, align=PP_ALIGN.CENTER))
+
+    animate_clicks(s, [g1, g2, g3, g4])
+
+    add_notes(s,
+        "⏱ ~1:30 | Running: 27:30\n\n"
+        "Tell it as a story, four beats:\n"
+        "(click) 1997, IBM's Deep Blue beats Kasparov, the reigning world champion.\n"
+        "(click) His response wasn't 'are humans obsolete?' It was 'what if we play on the\n"
+        "  same side?' He launched Advanced Chess: human + machine.\n"
+        "(click) 2005, a freestyle tournament open to anyone. The winners were two amateurs\n"
+        "  on three ordinary home PCs, beating grandmasters and far stronger computers.\n"
+        "(click) His conclusion: a weak human + machine + a BETTER PROCESS beat a strong\n"
+        "  computer alone, and even a strong human with a worse process. The edge was the\n"
+        "  partnership and the process, not raw power. Bridge into: where does that leave us?\n\n"
+        "Honesty (if asked): Deep Blue was brute-force search, not an LLM; the centaur edge\n"
+        "later faded as engines grew overwhelmingly strong. The lesson is the direction, not\n"
+        "a fixed seat. Photos: Deep Blue (James the photographer, CC BY 2.0); Kasparov\n"
+        "(Grendelkhan, CC BY-SA 4.0), Wikimedia Commons.")
+
+
+def s10ph_philosophical(prs):
+    """Philosophical beat: Nietzsche on meaning, then what AI is and is not (3 reveals)."""
+    s = content_slide(prs, "", "Let's get philosophical")
+
+    quote = txb(s,
+        "“Only humans give meaning to things. That is why we are called\n"
+        "human: the ones who value.”",
+        Inches(0.9), Inches(2.0), Inches(11.5), Inches(1.6),
+        size=30, italic=True, color=GOLD, align=PP_ALIGN.CENTER)
+    attrib = txb(s, "Friedrich Nietzsche, 1883 (loosely translated)",
+        Inches(0.9), Inches(3.65), Inches(11.5), Inches(0.4),
+        size=16, color=MUTED, align=PP_ALIGN.CENTER)
+
+    beat2 = txb(s, "AI is merely a simulation of human thought, but it is not human.",
+        Inches(0.7), Inches(4.7), Inches(11.9), Inches(0.7),
+        size=24, bold=True, color=SKY, align=PP_ALIGN.CENTER)
+
+    beat3 = txb(s,
+        "It cannot give meaning, cannot act with intent, cannot think of new ideas.",
+        Inches(0.7), Inches(5.7), Inches(11.9), Inches(1.0),
+        size=24, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+
+    animate_clicks(s, [[beat2], [beat3]])
+
+    add_notes(s,
+        "⏱ ~1:15 | Running: 28:45\n\n"
+        "Read the Nietzsche line slowly (it's a loose translation, not a literal quote):\n"
+        "only humans give meaning to things, valuing is what makes us human.\n"
+        "(click) AI is a simulation of human thought, an extraordinary one, but it is not\n"
+        "  human.\n"
+        "(click) So it cannot give meaning, cannot act with intent, cannot originate genuinely\n"
+        "  new ideas. That is the gap, and the gap is where our value lives.\n\n"
+        "Quote + attribution visible from start; the two AI lines reveal on click.")
 
 
 def s10e_ideas_spectrum(prs):
-    """10e — Where ideas live: world → you, and how each tier reaches the model."""
-    s = content_slide(prs, "WHERE IDEAS LIVE", "From the world's ideas to yours")
+    """10e — A world of ideas: tiers from world to you, and what covers each (1 click)."""
+    s = content_slide(prs, "", "A world of ideas")
 
     full = (Inches(0), Inches(0), Inches(13.333), Inches(7.5))
-    s.shapes.add_picture(asset("ideas_base.png"), *full)      # static stage (icons + labels)
-    w_band  = s.shapes.add_picture(asset("band_weights.png"), *full)
-    sk_band = s.shapes.add_picture(asset("band_skills.png"),  *full)
-    ag_band = s.shapes.add_picture(asset("band_agents.png"),  *full)
 
-    # Bottom axis (crisp pptx, revealed last): free on the left, your work on the right.
-    ax_y  = Inches(6.35)
-    shaft = rect(s, Inches(1.0), ax_y, Inches(10.9), Inches(0.035), fill=MUTED)
-    head_t = s.shapes.add_shape(MSO_SHAPE.ISOSCELES_TRIANGLE,
-                                Inches(11.82), ax_y - Inches(0.125), Inches(0.28), Inches(0.28))
-    head_t.rotation = 90
-    head_t.fill.solid(); head_t.fill.fore_color.rgb = MUTED
-    head_t.line.fill.background()
-    head_t.shadow.inherit = False
-    lbl_l = txb(s, "already known, free", Inches(1.0), Inches(5.95), Inches(5.0), Inches(0.4),
-                size=15, color=MUTED)
-    lbl_r = txb(s, "you must supply it", Inches(7.0), Inches(5.95), Inches(4.9), Inches(0.4),
-                size=16, bold=True, color=ACCENT, align=PP_ALIGN.RIGHT)
+    # Column centres match generate_ideas_spectrum.py (CX); baseline rule ~3.66" from top.
+    CX = [1.893, 4.28, 6.667, 9.053, 11.44]
+    coverage = [
+        ("the LLM", ACCENT),
+        ("coding agents and public skills", SKY),
+        ("company agents and skills", SKY),
+        ("team skills", GOLD),
+        ("only your brain", CORAL),
+    ]
+    cap_w = 2.32
+    # Reveal order: column 0, its caption, column 1, its caption, ... (10 clicks).
+    groups = []
+    for i, (src, col) in enumerate(coverage):
+        col_img = s.shapes.add_picture(asset(f"ideas_col{i}.png"), *full)
+        left = Inches(CX[i] - cap_w / 2)
+        cov = txb(s, "covered by", left, Inches(3.95), Inches(cap_w), Inches(0.35),
+                  size=12, color=MUTED, align=PP_ALIGN.CENTER)
+        src_b = txb(s, src, left, Inches(4.32), Inches(cap_w), Inches(1.4),
+                    size=15, bold=True, color=col, align=PP_ALIGN.CENTER)
+        groups.append([col_img])      # the tier (icon + labels + baseline slice)
+        groups.append([cov, src_b])   # its "covered by ..." caption
 
-    # Reveal one band per click; the punchline axis lands last.
-    animate_clicks(s, [[w_band], [sk_band], [ag_band], [shaft, head_t, lbl_l, lbl_r]])
+    animate_clicks(s, groups)
 
     add_notes(s,
-        "⏱ 1:15 | Running: 26:45\n\n"
-        "Zoom out. Every idea the AI uses sits somewhere on this line, from what the\n"
-        "whole world shares (left) to what only you know (right). The more common the\n"
-        "idea, the more likely it's already baked into the weights, for free. The more\n"
-        "specific to you, the more YOU have to hand it over.\n\n"
-        "Watch the mechanisms overlap: weights cover the world and your industry, then\n"
-        "fade out over Cato. Skills carry the middle (open-source, company, private).\n"
-        "Agents lean right, into your team and you. None maps to a single column, and\n"
-        "the boundaries move: every model generation pushes weights further right, and\n"
-        "every skill or note you write pushes your knowledge further left, into reach.\n\n"
-        "The takeaway is the bottom arrow: the further right you go, the more the work\n"
-        "is yours. And that work is exactly skills, agents, and context.")
+        "⏱ ~1:30 | Running: 26:45\n\n"
+        "Zoom out. Every idea the AI uses sits somewhere on this line, from what the whole\n"
+        "world shares (left) to what only you know (right). Build it up one tier at a time,\n"
+        "each tier then its coverage:\n"
+        "  (click) World ... (click) covered by the LLM, baked into the weights, for free.\n"
+        "  (click) Industry ... (click) coding agents and public skills.\n"
+        "  (click) Cato ... (click) company agents and skills.\n"
+        "  (click) Team ... (click) team skills.\n"
+        "  (click) You ... (click) only your brain. Nothing else has it.\n\n"
+        "The further right you go, the more the work is yours to supply. And that work is\n"
+        "exactly skills, agents, and context, the things this talk was about.")
 
 
 def s10d_layer_summary(prs):
@@ -2026,17 +2176,112 @@ def s11_tips(prs):
         "3. If AI disappoints — ask what you forgot to give it. 9/10 it's the context.")
 
 
+def s10f_ai_helps(prs):
+    """AI can help you: three ways, revealed one per click."""
+    s = content_slide(prs, "", "AI can help you")
+
+    bullet_shapes = []
+    y = Inches(2.4)
+    for text in ["By doing things you are bad at",
+                 "By accelerating things you are good at",
+                 "By helping you learn new things and ideas"]:
+        tb = s.shapes.add_textbox(Inches(1.2), y, Inches(11.0), Inches(0.9))
+        tf = tb.text_frame
+        tf.word_wrap = True
+        p = tf.paragraphs[0]
+        m = p.add_run(); m.text = "▸   "
+        m.font.size = Pt(28); m.font.bold = True; m.font.color.rgb = ACCENT; m.font.name = FONT
+        r = p.add_run(); r.text = text
+        r.font.size = Pt(28); r.font.bold = True; r.font.color.rgb = FG; r.font.name = FONT
+        bullet_shapes.append(tb)
+        y += Inches(1.25)
+
+    animate_clicks(s, [[b] for b in bullet_shapes])
+
+    add_notes(s,
+        "⏱ ~1:00 | Running: 27:30\n\n"
+        "The optimistic turn. AI helps you three ways:\n"
+        "(click) it does the things you're bad at,\n"
+        "(click) it accelerates the things you're good at,\n"
+        "(click) and it helps you learn new things and ideas.\n\n"
+        "That last one sets up the first closing quote (Mark Cuban) on the next slide.")
+
+
+def s10g_closing_quotes(prs):
+    """Closing finale: four parting quotes as a 2x2 grid, one per click."""
+    s = content_slide(prs, "", "A few parting thoughts")
+
+    # (quote, attribution, border colour), in reveal/reading order TL, TR, BL, BR.
+    quotes = [
+        ("“We can know more than we can tell.”",
+         "Michael Polanyi, The Tacit Dimension, 1966", SKY),
+        ("“When anyone can make anything, knowing what is worth making is the rare skill.”",
+         "echoing Paul Graham, Taste for Makers, 2002", GOLD),
+        ("“There are 2 types of LLM users: those who use it to learn everything, "
+         "and those who use it so they don't have to learn anything.”",
+         "Mark Cuban, 2026", ACCENT),
+        ("“A computer can never be held accountable. That's your job as the human in the loop.”",
+         "Simon Willison, 2025", CORAL),
+    ]
+
+    cw, ch = Inches(5.94), Inches(2.45)
+    xs = [Inches(0.55), Inches(6.84)]
+    ys = [Inches(1.9), Inches(4.7)]
+    pad = Inches(0.3)
+    groups = []
+    for i, (quote, who, col) in enumerate(quotes):
+        x = xs[i % 2]
+        yv = ys[i // 2]
+        box = rect(s, x, yv, cw, ch, fill=BOX_FILL, line=col, line_w=Pt(1.5))
+        q = txb(s, quote, x + pad, yv + Inches(0.22), cw - 2 * pad, Inches(1.55),
+                size=17, italic=True, color=FG)
+        a = txb(s, who, x + pad, yv + ch - Inches(0.55), cw - 2 * pad, Inches(0.4),
+                size=13, bold=True, color=col)
+        groups.append([box, q, a])
+
+    animate_clicks(s, groups)
+
+    add_notes(s,
+        "⏱ ~1:30 | Running: 29:00\n\n"
+        "Four voices to leave them with, one per click:\n"
+        "(click) Polanyi: we know more than we can tell, your tacit knowledge is yours\n"
+        "  and can't be handed over. (The Tacit Dimension, 1966)\n"
+        "(click) Graham: when anyone can make anything, taste, knowing what's worth\n"
+        "  making, is the rare skill. (echoing Taste for Makers, 2002)\n"
+        "(click) Cuban: use AI to learn everything, not to avoid learning. (2026)\n"
+        "(click) Willison: a computer can never be held accountable, that's your job as\n"
+        "  the human in the loop. (2025; the first line is a 1979 IBM training slide,\n"
+        "  Willison's contribution is the 'human in the loop' framing.)\n\n"
+        "End on Willison: the responsibility stays on us. Then: Thank you.")
+
+
 def s12_thanks(prs):
     """12 — Thank you (Thank you slide Black)"""
     s = add(prs, "Thank you slide Black")
     set_ph(s, 0, "Thank you", color=FG)
-    txb(s, "Questions?", Inches(3.3), Inches(4.8), Inches(6), Inches(0.7),
-        size=28, color=ACCENT)
+
+    # The cute geek stickers from the title slide, scattered around the "Thank you"
+    # (kept clear of the centre title band, x 3.3-10.0 / y 3.3-4.75).
+    geeks = [
+        ("geek_claude_t.png",   0.70, 0.65, 1.75, -14),
+        ("geek_copilot_t.png", 10.85, 0.55, 1.50,  15),
+        ("geek_cursot_t.png",   0.45, 3.05, 1.35,   9),
+        ("geek_claude_t.png",  11.45, 3.15, 1.35,  -9),
+        ("geek_cursot_t.png",   1.35, 5.35, 1.60,  11),
+        ("geek_copilot_t.png", 10.40, 5.45, 1.45, -12),
+    ]
+    for name, l, t, wd, rot in geeks:
+        p = asset(name)
+        if os.path.exists(p):
+            pic = s.shapes.add_picture(p, Inches(l), Inches(t), width=Inches(wd))
+            pic.rotation = rot
+
     add_notes(s,
         "⏱ 3:45 | Running: 30:00\n\n"
-        "Optional callback before Q&A: 'You now know the parts. Go fire the weapon.'\n"
-        "Budget ~3-4 min for Q&A. Expect: when to use an agent vs a plain LLM call\n"
-        "(real-world data / multi-step), best model (depends; concepts are the same),\n"
+        "Close warm. The geek stickers from the opening come back, scattered, to bookend\n"
+        "the talk. Optional callback before Q&A: 'You now know the parts. Go fire the\n"
+        "weapon.' Budget ~3-4 min for Q&A. Expect: when to use an agent vs a plain LLM\n"
+        "call (real-world data / multi-step), best model (depends; concepts are the same),\n"
         "how we use this at Cato (good opening for a follow-up session).")
 
 
@@ -2082,9 +2327,12 @@ def build():
     s10a2_context_moves(prs)         # the three moves: start fresh / compress / offload
     s10b_skills_filesystem(prs)      # worked example: skills (offload + load on demand)
     s10c_ecosystem(prs)
+    s10r_so_this_is_ai(prs)          # recap ring (small, left) -> "but, where does it leave us?"
+    s10k_kasparov(prs)               # Kasparov / centaur story (4 clicks), ends on his conclusion
+    s10ph_philosophical(prs)         # Nietzsche on meaning -> AI is not human, cannot give meaning
     s10e_ideas_spectrum(prs)         # zoom out: world → you, and how each tier reaches the model
-    s10d_layer_summary(prs)
-    s11_tips(prs)
+    s10f_ai_helps(prs)               # the optimistic turn: three ways AI helps you
+    s10g_closing_quotes(prs)         # finale: four parting quotes (Cuban, Polanyi, Graham, Willison)
     s12_thanks(prs)
 
     out = os.path.join(HERE, "understanding_ai_for_geeks.pptx")

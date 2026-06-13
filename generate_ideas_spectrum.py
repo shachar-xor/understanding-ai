@@ -167,6 +167,32 @@ def build_base():
     save(fig, "ideas_base.png")
 
 
+def build_columns():
+    """One transparent full-canvas overlay per column (icon + labels + its baseline
+    segment + right divider), so the slide can reveal the five tiers one click at a
+    time. Stacking all five reproduces ideas_base.png exactly."""
+    icon_drawers = [globe, skyline, cato_badge, team, None]
+    for i, (caps, sub, ccol) in enumerate(LEVELS):
+        fig, ax = new_fig()
+        cx = CX[i]
+        # this column's slice of the baseline rule
+        ax.plot([BOUNDS[i], BOUNDS[i + 1]], [BASE_MY, BASE_MY], color=LINE_DIM,
+                lw=1.4, zorder=1)
+        # right-hand divider (interior columns only)
+        if i < len(LEVELS) - 1:
+            ax.plot([BOUNDS[i + 1], BOUNDS[i + 1]], [BASE_MY, GUIDE_TOP],
+                    color=LINE_DIM, lw=1.0, alpha=0.6, zorder=1)
+        if caps == "YOU":
+            person(ax, cx, ICON_CY, 1.9, ACCENT)
+        else:
+            icon_drawers[i](ax, cx, ICON_CY)
+        ax.text(cx, CAPS_MY, caps, color=ccol, fontsize=18, fontweight="bold",
+                ha="center", va="center", fontfamily=FAM, zorder=3)
+        ax.text(cx, SUB_MY, sub, color=MUTED, fontsize=11.5, ha="center",
+                va="center", fontfamily=FAM, zorder=3, linespacing=1.05)
+        save(fig, f"ideas_col{i}.png")
+
+
 # ── mechanism bands ─────────────────────────────────────────────────────────--
 
 def band(name, color_hex, label, points, label_x):
@@ -214,4 +240,5 @@ def build_bands():
 
 if __name__ == "__main__":
     build_base()
+    build_columns()
     build_bands()
