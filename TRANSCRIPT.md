@@ -1,10 +1,10 @@
 # Understanding AI for Geeks — Speaking Transcript
 
 A slide-by-slide script of what to say, with per-slide and running time estimates.
-Written for the deck as it currently stands (33 slides, `understanding_ai_for_geeks.pptx`).
+Written for the deck as it currently stands (36 slides, `understanding_ai_for_geeks.pptx`).
 
 - Pace assumed: calm, conversational, with pauses for clicks and audience replies.
-- Total body: **~32 minutes**. Add **~3-4 minutes** of Q&A for **~36 minutes** overall.
+- Total body: **~36 minutes**. Add **~3-4 minutes** of Q&A for **~40 minutes** overall.
 - Times in **(this slide / running total)**. "[click]" marks an animation reveal.
 
 ---
@@ -83,7 +83,7 @@ Every single shift, the community coined the vocabulary that made the idea share
 
 [click] And it's closed. It's vendor-driven and built for lock-in. OpenAI, Anthropic, Google, Meta, all competing. None of them is motivated to give us a shared vocabulary.
 
-[click] So we build it ourselves. As a community, vendor-independent. We can't wait for it to settle, so let's start now."
+[click] So we build it ourselves. As a community, vendor-independent. We can't wait for it to settle, and nobody hands it to us. That's exactly what the rest of this talk does, with three words."
 
 ---
 
@@ -207,6 +207,8 @@ Same sentence, one letter apart, and the whole answer changes. This is why promp
 
 "And here's the last trait, the one that sets up everything next: it can role-play.
 
+[click, the d20 drops in] The geeky kind of role-play.
+
 [click] 'You are Gandalf, a level 12 wizard. Spells: Fireball, Detect Magic, Light. A Balrog blocks the bridge. Your move?' [click] 'I slam my staff down, you shall not pass, and ready Fireball.'
 
 [click] Same trick, real job. 'You are a senior software engineer, you write clean secure Python, review this for a bug.' [click] 'First, the bug: this loop is O(n squared). Here's the fix, then why it works.'
@@ -215,55 +217,103 @@ Notice both prompts give it a *role* and a list of *capabilities*. That's exactl
 
 But here's the catch: those spells, that terminal, they're just words. The model can't actually cast Fireball or run the code.
 
-Give that role *real* tools and a loop, and you get the next layer."
+Give that role *real* tools and a loop to use them, and you get the next layer: the Agent."
 
 ---
 
-## SLIDE 17 — Agent = LLM  (0:20 / 16:40)
+## SLIDE 17 — An LLM is limited by its input size  (0:50 / 17:10)
 
-"Layer two: the Agent.
+"So, layer two: the Agent. To get there, start with the LLM's one hard limit.
 
-At its core, an agent starts as just an LLM. It reads input and decides what to do, in text."
+An LLM only ever sees its input. We call that the context window: everything it sees at once, the system prompt plus your message plus its own answer so far, all measured in tokens. It's a fixed budget.
 
----
+[click] Now, that budget keeps growing. Roughly 2 thousand tokens in 2020, up to about 2 million today. On a log scale, that's about a thousand-fold in five years, with the steepest jump between 2023 and 2024.
 
-## SLIDE 18 — Agent = LLM + Tools  (0:25 / 17:05)
-
-"Now add tools. Web search, a calculator, APIs.
-
-The LLM doesn't run them. It just *decides* which one to call. The framework around it actually runs the tool."
+So the obvious thought is: just wait, soon it'll hold everything. The next slide pushes back on that."
 
 ---
 
-## SLIDE 19 — Agent = LOOP( LLM + Tools )  (0:30 / 17:35)
+## SLIDE 18 — But some things still don't fit  (1:00 / 18:10)
 
-"And then wrap the whole thing in a loop.
+"Because some things still don't fit.
 
-The tool result goes back to the LLM. It re-reads everything, decides the next step, and keeps going until it decides it's done."
+Take A Song of Ice and Fire, the Game of Thrones books. Five books. [click] About 1.77 million words. [click] At roughly 1.3 tokens per word, that's about 2.4 million tokens. More than the biggest context window on Earth.
 
----
+[click] So even the largest LLM can't summarize it in a single pass.
 
-## SLIDE 20 — The agent loop, full diagram  (1:00 / 18:35)
-
-"Here's the full picture.
-
-User input enters at the LLM, at the top. At the bottom, it asks one question: am I done? If yes, the output exits as the agent's answer. If no, it loops: call a tool, read the result, come back, and ask again.
-
-One question goes in. Everything else happens inside the loop."
+And honestly, even when something *does* fit, models get 'lost in the middle,' and filling the whole window is expensive. So we have to split the work up."
 
 ---
 
-## SLIDE 21 — The developer wrote one question  (0:30 / 19:05)
+## SLIDE 19 — Split it up: many LLMs, code in between  (1:10 / 19:20)
 
-"Let's make that concrete.
+"First trick, and there's no loop yet, just many calls with plain code between them.
 
-This is all the developer typed: 'Who is Taylor Swift's boyfriend? Find out his age and calculate the square root of his age.'
+Start with the whole book. [click] Split it into chapters. [click] Then 'map': summarize each chapter with its own LLM call. [click] Then 'reduce': one more LLM call over all those summaries, to a final summary.
+
+The arrows between the steps are ordinary code. Deterministic. No AI.
+
+Honest caveat: each chapter gets summarized blind to the others, so you lose the cross-chapter context. And this is a fixed pipeline. So what happens when you don't know the steps in advance?"
+
+---
+
+## SLIDE 20 — Feed the output back in: a loop  (1:00 / 20:20)
+
+"Then you feed the output back into the input. A loop.
+
+[click] Practical example: 'Draft a release note for this feature.' Then have it critique its own draft. Then rewrite. Then repeat.
+
+The hard part is the exit. [click] How do we know when to stop? When the model decides it's done. Or a critic approves, or you hit a max-round cap.
+
+Honest catch: with no tools, it's grading its own homework. It can't actually check anything against the real world. And that's exactly what tools fix."
+
+---
+
+## SLIDE 21 — Agent = LOOP( LLM + Tools )  (0:45 / 21:05)
+
+"So here's the definition. An agent is a loop, around an LLM, plus tools.
+
+[click] Real tools: web search, run code, a shell, read and write files, compile.
+
+[click] Now the loop can act in the real world, and check its own work against it.
+
+One question enters at the LLM. At the bottom it asks: am I done? If no, it calls a tool, reads the result, loops. If yes, it exits as the agent's answer. LLM, plus tools, plus a loop. That is an agent."
+
+---
+
+## SLIDE 22 — The loop runs anywhere. The brain is usually in the cloud.  (0:50 / 21:55)
+
+"One nuance about where this actually runs. The loop, the code between the LLM calls, can run anywhere.
+
+[click] Cloud agents run it on someone else's servers: ChatGPT agent, Devin, Manus, Replit Agent.
+
+[click] Local agents run it on your machine: Claude Code, Cursor, Codex CLI, Aider. That's most of this room.
+
+[click] But either way, the model itself is normally a cloud API. You *can* run the model locally too, with Ollama or llama.cpp, but it's rare: smaller models, heavier hardware."
+
+---
+
+## SLIDE 23 — A coding agent's toolbox  (0:50 / 22:45)
+
+"So what's actually in a coding agent's toolbox? Nothing exotic.
+
+Read files. Write and edit files. Run shell commands. Run tests, so it can check its own work. Search the codebase. Git. Compile and build. Fetch the web.
+
+Plain, boring, powerful. The exact same things a developer does all day.
+
+[click] There's one more class of tools, the ones that manage the agent's own context, and that's the next layer. But first, let's watch this toolbox in action."
+
+---
+
+## SLIDE 24 — The developer wrote one question  (0:20 / 23:05)
+
+"Here's all the developer typed: 'Who is Taylor Swift's boyfriend? Find out his age and calculate the square root of his age.'
 
 One question. [click] Now watch what the agent wraps around it."
 
 ---
 
-## SLIDE 22 — The agent wraps it in context  (0:50 / 19:55)
+## SLIDE 25 — The agent wraps it in context  (0:45 / 23:50)
 
 "The agent didn't change the question. It wrapped it.
 
@@ -277,7 +327,7 @@ This right here is how the LLM knows what tools exist. It's just text. Not a fun
 
 ---
 
-## SLIDE 23 — Call 1 of 4  (0:50 / 20:45)
+## SLIDE 26 — Call 1 of 4  (0:50 / 24:40)
 
 "Call one. Everything is green, because it's all brand new.
 
@@ -287,7 +337,7 @@ And the key idea, on the right: the context grows every step, and the LLM re-rea
 
 ---
 
-## SLIDE 24 — Call 2 of 4  (0:50 / 21:35)
+## SLIDE 27 — Call 2 of 4  (0:50 / 25:30)
 
 "Call two. Now the colors mean something. Grey is what it's already seen. Amber is the previous LLM response. Green is the new tool result.
 
@@ -297,7 +347,7 @@ Notice: the LLM is never told it's on step two. It figures that out by re-readin
 
 ---
 
-## SLIDE 25 — Call 3 of 4  (0:45 / 22:20)
+## SLIDE 28 — Call 3 of 4  (0:45 / 26:15)
 
 "Call three. Context keeps growing. Everything from calls one and two is still here, and still re-read.
 
@@ -307,7 +357,7 @@ Still just text coming out."
 
 ---
 
-## SLIDE 26 — Call 4 of 4  (1:00 / 23:20)
+## SLIDE 29 — Call 4 of 4  (1:00 / 27:15)
 
 "Call four. The full history is dimmed behind us, and the new green is the calculator result and the final answer.
 
@@ -317,7 +367,7 @@ Step back and count it. One question from the developer. Underneath: four LLM ca
 
 ---
 
-## SLIDE 27 — Context is limited, we manage it  (1:30 / 24:50)
+## SLIDE 30 — Context is limited, we manage it  (1:30 / 28:45)
 
 "Layer three: Context Management.
 
@@ -329,7 +379,7 @@ Here's an analogy. Human intelligence has no hard limit either. [click] But it n
 
 ---
 
-## SLIDE 28 — Example: skills and the filesystem  (1:30 / 26:20)
+## SLIDE 31 — Example: skills and the filesystem  (1:30 / 30:15)
 
 "Let's make it concrete with one example: skills.
 
@@ -345,7 +395,7 @@ The filesystem is your context-management layer. And you already know how to use
 
 ---
 
-## SLIDE 29 — The ecosystem: different names, same idea  (1:15 / 27:35)
+## SLIDE 32 — The ecosystem: different names, same idea  (1:15 / 31:30)
 
 "And once you see this, you can't unsee it.
 
@@ -357,7 +407,7 @@ The filesystem is your context-management layer. And you already know how to use
 
 ---
 
-## SLIDE 30 — Where ideas live  (1:15 / 28:50)
+## SLIDE 33 — Where ideas live  (1:15 / 32:45)
 
 "Let's zoom out.
 
@@ -365,13 +415,13 @@ Every idea the AI uses sits somewhere on this line. On the left, what the whole 
 
 [click] The more common an idea is, the more likely it's already baked into the weights, for free. [click] The more specific it is to you, your team, your company, the more *you* have to hand it over.
 
-Watch the mechanisms overlap. The weights cover the world and your industry, then fade out as you get to Cato-specific things. Skills carry the middle. Agents lean to the right, into your team's private knowledge.
+Watch the mechanisms overlap. The weights cover the world and your industry, then fade out as you get to Cato-specific things. Skills carry the middle. Agents lean to the right, into your team's private knowledge. And the boundaries keep moving: every new model generation pushes the weights further right.
 
 Different tools, one spectrum: from the world's ideas to yours."
 
 ---
 
-## SLIDE 31 — Putting it together: the three layers  (0:30 / 29:20)
+## SLIDE 34 — Putting it together: the three layers  (0:30 / 33:15)
 
 "Quick callback. The three layers.
 
@@ -381,7 +431,7 @@ These three describe every AI product you'll use or build. Now, what do we do wi
 
 ---
 
-## SLIDE 32 — Takeaways: using AI well  (2:30 / 31:50)
+## SLIDE 35 — Takeaways: using AI well  (2:30 / 35:45)
 
 > Slow down. This is the payoff. Take your time.
 
@@ -395,7 +445,7 @@ These three describe every AI product you'll use or build. Now, what do we do wi
 
 ---
 
-## SLIDE 33 — Thank you / Questions  (0:30 / 32:20)  + Q&A (~3-4 min)
+## SLIDE 36 — Thank you / Questions  (0:30 / 36:15)  + Q&A (~3-4 min)
 
 "You now know the parts. Go fire the weapon.
 
@@ -414,13 +464,15 @@ Thank you. Happy to take questions."
 |---|---|---|
 | Intro & framing | 1-6 | ~6:00 |
 | Layer 1: LLM | 7-16 | ~10:20 |
-| Layer 2: Agent | 17-26 | ~7:00 |
-| Layer 3: Context Management | 27-30 | ~5:30 |
-| Wrap-up & takeaways | 31-33 | ~3:30 |
-| **Body total** | | **~32:00** |
+| Layer 2: Agent | 17-29 | ~10:55 |
+| Layer 3: Context Management | 30-33 | ~5:30 |
+| Wrap-up & takeaways | 34-36 | ~3:30 |
+| **Body total** | | **~36:15** |
 | Q&A | | ~3-4 min |
-| **Grand total** | | **~36 min** |
+| **Grand total** | | **~40 min** |
 
-> Buffer tips if you're running long: slides 11-14 can each lose 15-20s by cutting
-> to one example per side. Slide 27 can drop the human-intelligence analogy. The
-> agent walkthrough (23-26) is the heart of the talk, protect that time.
+> If you need to land closer to 30 minutes, the Agent section is where the slack is:
+> - Slides 17-18 (context window + Game of Thrones) can be compressed to one beat each (~30s saved).
+> - Slide 22 (cloud vs local) and slide 23 (toolbox) can each lose ~20s by naming fewer examples.
+> - Slides 11-14 can each lose 15-20s by cutting to one example per side.
+> Protect the agent walkthrough (slides 24-29) and the takeaways (35), those are the heart of the talk.

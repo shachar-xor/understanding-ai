@@ -1418,11 +1418,11 @@ def s09a0c_too_big(prs):
     s = content_slide(prs, "AGENT", "But some things still do not fit")
 
     # The books (left) and the show everyone recognizes (right) frame the math.
-    add_pic_fit(s, asset("asoiaf_books.png"), Inches(0.35), Inches(2.55),
-                Inches(2.75), Inches(3.6))
-    throne = add_pic_fit(s, asset("got_throne.jpg"), Inches(10.0), Inches(1.95),
-                         Inches(2.95), Inches(4.5))
-    rect(s, throne.left, throne.top, throne.width, throne.height,
+    add_pic_fit(s, asset("song_of_ice_and_fire_books.png"), Inches(0.35), Inches(2.45),
+                Inches(2.9), Inches(3.85))
+    card = add_pic_fit(s, asset("Game_of_Thrones_title_card.jpg"),
+                       Inches(9.95), Inches(2.6), Inches(3.3), Inches(3.6))
+    rect(s, card.left, card.top, card.width, card.height,
          line=LINE_DIM, line_w=Pt(1))
 
     cx, cw = Inches(3.4), Inches(6.5)   # centre column between the two images
@@ -1442,7 +1442,7 @@ def s09a0c_too_big(prs):
     animate_clicks(s, [[book, words], [tokens, tnote], [punch]])
     add_notes(s,
         "⏱ 1:00 | Running: ~18:45\n\n"
-        "The books on the left, the throne on the right, everyone knows this one. The\n"
+        "The books on the left, the title card on the right, everyone knows this one. The\n"
         "cute conversion: words times about 1.3 gives tokens. Game of Thrones, five\n"
         "books, is roughly 2.4M tokens, more than the biggest window on Earth. Click\n"
         "through it, then land the line: even the largest LLM can't summarize it in one\n"
@@ -1470,27 +1470,27 @@ def s09mr_mapreduce(prs):
 
 
 def s09loop_notools(prs):
-    """Feed the LLM's output back into its input: a loop. The exit-point question."""
+    """Feed the LLM's output back into its input: a loop with no tools."""
     s = content_slide(prs, "AGENT", "Feed the output back in: a loop")
-    s.shapes.add_picture(asset("agent_loop_notools.png"),
-                         Inches(0), Inches(1.55), Inches(13.33), Inches(4.75))
-    example = txb(s, 'Practical:  "Draft a release note for this feature."   '
-                     '→  critique it   →  rewrite   →  repeat',
-                  Inches(0.55), Inches(6.25), Inches(12.2), Inches(0.5),
-                  size=17, color=FG, align=PP_ALIGN.CENTER, font=MONO)
-    exitq = txb_runs(s, [("How do we know when to stop?   ", ACCENT),
-                         ("when the model decides it is done", MUTED)],
-                     Inches(0.55), Inches(6.82), Inches(12.2), Inches(0.5),
-                     size=20, bold=True, align=PP_ALIGN.CENTER)
-    animate_clicks(s, [[example], [exitq]])
+    # The concrete prompt you actually write: the exit lives in the instruction.
+    prompt = txb(s, '"Write a tweet about our product launch. Critique your draft and '
+                    'rewrite until it is punchy, on-brand, and at most 140 characters."',
+                 Inches(0.9), Inches(2.0), Inches(11.53), Inches(0.8),
+                 size=18, color=ACCENT, align=PP_ALIGN.CENTER, font=MONO)
+    # The loop itself (image is 16x4.1, so height = 13.33 / 3.902).
+    loop = s.shapes.add_picture(asset("agent_loop_notools.png"),
+                                Inches(0), Inches(3.05), Inches(13.33), Inches(3.42))
+    animate_clicks(s, [[prompt], [loop]])
     add_notes(s,
-        "⏱ 1:00 | Running: ~21:25\n\n"
-        "Now wire output back into input. Practical example: ask for a release note,\n"
-        "have it critique its own draft, rewrite, repeat. Click the example. The hard\n"
-        "part is the exit: when do we stop? Click. The model decides it is done (or a\n"
-        "critic approves, or a max-round cap). Honest catch: with no tools it is grading\n"
-        "its own homework, it cannot actually check anything against the real world.\n"
-        "That is exactly what tools fix.")
+        "⏱ 0:55 | Running: ~21:20\n\n"
+        "A loop with no tools: the model drafts a tweet, critiques its own draft,\n"
+        "rewrites, and repeats until it judges the result good. Click for the prompt,\n"
+        "click for the loop, the draft feeds straight back into the LLM. The exit lives\n"
+        "in the prompt itself (punchy, on-brand, at most 140 characters). Honest catch,\n"
+        "and the bridge to the next slide: with no tools it is grading its own homework.\n"
+        "It is fine judging 'punchy' and 'on-brand', but it cannot reliably count to 140\n"
+        "characters (it sees tokens, not letters), so it may stop while still over the\n"
+        "limit. That is exactly what a tool fixes: run code that actually counts.")
 
 
 def s09loop_tools(prs):
