@@ -164,3 +164,23 @@ draw_user_input(ax)
 draw_decision(ax)
 draw_agent_output(ax)
 save(fig, os.path.join(OUT, "agent_diagram_4.png"))
+
+# ── Loop without tools: one LLM feeding its own output back in ───────────────
+fig, ax = new_fig()
+draw_oval(ax)
+draw_loop_arrows(ax)
+draw_box(ax, OX, OY, "LLM", ACCENT, fontsize=22)   # single, centred box
+# User input arrow into the top of the box
+ax.annotate("",
+    xy=(OX, OY + BOX_H / 2), xytext=(OX, OY + BOX_H / 2 + 1.8),
+    arrowprops=dict(arrowstyle="-|>", color=ACCENT, lw=2.5, mutation_scale=20))
+ax.text(OX, OY + BOX_H / 2 + 2.0, "Your input",
+        color=ACCENT, fontsize=16, fontweight="bold",
+        ha="center", va="bottom", fontfamily="DejaVu Sans")
+# Loop caption + exit decision + output
+ax.text(OX, OY + RY + 0.18, "feeds its own output back in",
+        color=LOOP_C, fontsize=15, ha="center", va="bottom",
+        style="italic", fontfamily="DejaVu Sans")
+draw_decision(ax)
+draw_agent_output(ax)
+save(fig, os.path.join(OUT, "agent_loop_notools.png"))

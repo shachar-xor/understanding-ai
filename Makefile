@@ -27,6 +27,9 @@ build: | $(PY)
 # Regenerate the generated image assets (diagrams, ideas spectrum, d20 cutout).
 assets: | $(PY)
 	$(PY) generate_agent_diagram.py
+	$(PY) generate_context_growth.py
+	$(PY) generate_mapreduce_tree.py
+	$(PY) generate_got_assets.py
 	$(PY) generate_ideas_spectrum.py
 	$(PY) make_d20_asset.py
 

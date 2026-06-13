@@ -161,6 +161,32 @@ def txb_runs(slide, segments, left, top, width, height,
     return tf_box
 
 
+def txb_lines(slide, lines, left, top, width, height,
+              size=28, bold=False, color=None, align=PP_ALIGN.LEFT,
+              font=None, line_spacing=None):
+    """Multi-paragraph text box: each item in `lines` is its own paragraph, giving
+    a guaranteed line break. (A '\\n' inside a single run is stored as a literal
+    newline that renderers treat as whitespace and word-wrap, not a hard break.)"""
+    tf_box = slide.shapes.add_textbox(left, top, width, height)
+    tf = tf_box.text_frame
+    tf.word_wrap = True
+    tf.auto_size = MSO_AUTO_SIZE.NONE
+    first = True
+    for line in lines:
+        p = tf.paragraphs[0] if first else tf.add_paragraph()
+        first = False
+        p.alignment = align
+        if line_spacing is not None:
+            p.line_spacing = line_spacing
+        run = p.add_run()
+        run.text = line
+        run.font.size = Pt(size)
+        run.font.bold = bold
+        run.font.color.rgb = color or FG
+        run.font.name = font or FONT
+    return tf_box
+
+
 def rect(slide, left, top, width, height, fill=None, line=None, line_w=Pt(1)):
     """Add a rectangle shape."""
     shp = slide.shapes.add_shape(1, left, top, width, height)
@@ -1359,6 +1385,209 @@ def s08p6_roleplay(prs):
         "exactly where we go next.")
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+#  AGENT SECTION  (Piece 2 of AI): from "LLM is limited by context" to the loop
+# ═══════════════════════════════════════════════════════════════════════════
+
+def s09a0_context_limit(prs):
+    """The LLM is limited by its input size (its context window). That window has
+    grown fast over the years, shown as a small chart revealed on a click."""
+    s = content_slide(prs, "AGENT", "An LLM is limited by its input size")
+    txb_runs(s, [("Its input is the ", MUTED), ("context window", SKY),
+                 (": everything it sees at once, measured in tokens.", MUTED)],
+             Inches(0.8), Inches(1.95), Inches(11.73), Inches(0.6),
+             size=22, align=PP_ALIGN.CENTER)
+    cap = txb(s, "Finite, but it keeps growing:  about 2K → 2M tokens in five years.",
+              Inches(0.8), Inches(2.85), Inches(11.73), Inches(0.5),
+              size=18, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+    chart = s.shapes.add_picture(asset("context_growth.png"),
+                                 Inches(2.1), Inches(3.25), Inches(9.13), Inches(3.8))
+    animate_clicks(s, [[cap, chart]])
+    add_notes(s,
+        "⏱ 0:50 | Running: ~17:45\n\n"
+        "Bridge from role-play: an LLM only ever sees its input, the context window,\n"
+        "the system prompt plus your message plus its own answer so far, all as tokens.\n"
+        "A fixed budget. Make the point, then click: the small chart shows how that\n"
+        "budget has grown, 2K in 2020 to 2M today on a log scale, about a thousand-fold\n"
+        "in five years. Steepest jump 2023 to 2024. Obvious thought: just wait, it will\n"
+        "hold everything soon. Next slide pushes back.")
+
+
+def s09a0c_too_big(prs):
+    """Words-to-tokens device: even the biggest window cannot hold a whole series."""
+    s = content_slide(prs, "AGENT", "But some things still do not fit")
+
+    # The books (left) and the show everyone recognizes (right) frame the math.
+    add_pic_fit(s, asset("asoiaf_books.png"), Inches(0.35), Inches(2.55),
+                Inches(2.75), Inches(3.6))
+    throne = add_pic_fit(s, asset("got_throne.jpg"), Inches(10.0), Inches(1.95),
+                         Inches(2.95), Inches(4.5))
+    rect(s, throne.left, throne.top, throne.width, throne.height,
+         line=LINE_DIM, line_w=Pt(1))
+
+    cx, cw = Inches(3.4), Inches(6.5)   # centre column between the two images
+    book = txb_runs(s, [("A Song of Ice and Fire", GOLD), ("   ·   5 books", MUTED)],
+                    cx, Inches(2.5), cw, Inches(0.6), size=23, bold=True,
+                    align=PP_ALIGN.CENTER)
+    words = txb(s, "≈ 1.77 million words", cx, Inches(3.25), cw, Inches(0.7),
+                size=37, bold=True, color=FG, align=PP_ALIGN.CENTER)
+    tokens = txb_runs(s, [("→   ", MUTED), ("≈ 2.4 million tokens", ACCENT)],
+                      cx, Inches(4.2), cw, Inches(0.75), size=33, bold=True,
+                      align=PP_ALIGN.CENTER)
+    tnote = txb(s, "(about 1.3 tokens per word)", cx, Inches(4.95), cw, Inches(0.4),
+                size=15, color=MUTED, align=PP_ALIGN.CENTER)
+    punch = txb(s, "Even the largest LLM can't summarize it in a single pass.",
+                cx, Inches(5.6), cw, Inches(1.0), size=24, bold=True, color=GOLD,
+                align=PP_ALIGN.CENTER)
+    animate_clicks(s, [[book, words], [tokens, tnote], [punch]])
+    add_notes(s,
+        "⏱ 1:00 | Running: ~18:45\n\n"
+        "The books on the left, the throne on the right, everyone knows this one. The\n"
+        "cute conversion: words times about 1.3 gives tokens. Game of Thrones, five\n"
+        "books, is roughly 2.4M tokens, more than the biggest window on Earth. Click\n"
+        "through it, then land the line: even the largest LLM can't summarize it in one\n"
+        "pass. (And even when something DOES fit, models get 'lost in the middle' and\n"
+        "filling the window is expensive.) So we have to split the work.")
+
+
+def s09mr_mapreduce(prs):
+    """Deterministic 'agent': many LLM calls with plain code routing between them."""
+    s = content_slide(prs, "AGENT", "Split it up: many LLMs, code in between")
+    pos = (Inches(0), Inches(1.7), Inches(13.33), Inches(5.7))
+    s.shapes.add_picture(asset("mapreduce_l1.png"), *pos)          # book (shown first)
+    l2 = s.shapes.add_picture(asset("mapreduce_l2.png"), *pos)     # chapters
+    l3 = s.shapes.add_picture(asset("mapreduce_l3.png"), *pos)     # MAP: LLMs + summaries
+    l4 = s.shapes.add_picture(asset("mapreduce_l4.png"), *pos)     # REDUCE: final summary
+    animate_clicks(s, [[l2], [l3], [l4]])
+    add_notes(s,
+        "⏱ 1:10 | Running: ~19:55\n\n"
+        "First trick, no loop yet, just many calls with plain code between them. Start\n"
+        "with the whole book. Click: split it into chapters. Click: MAP, summarize each\n"
+        "chapter with its own LLM call. Click: REDUCE, one more LLM over the summaries\n"
+        "to a final summary. The arrows are ordinary code, deterministic, no AI. Honest\n"
+        "caveat: each chapter is summarized blind to the others, so cross-chapter\n"
+        "context is lost. Fixed pipeline. What if the steps are not known in advance?")
+
+
+def s09loop_notools(prs):
+    """Feed the LLM's output back into its input: a loop. The exit-point question."""
+    s = content_slide(prs, "AGENT", "Feed the output back in: a loop")
+    s.shapes.add_picture(asset("agent_loop_notools.png"),
+                         Inches(0), Inches(1.55), Inches(13.33), Inches(4.75))
+    example = txb(s, 'Practical:  "Draft a release note for this feature."   '
+                     '→  critique it   →  rewrite   →  repeat',
+                  Inches(0.55), Inches(6.25), Inches(12.2), Inches(0.5),
+                  size=17, color=FG, align=PP_ALIGN.CENTER, font=MONO)
+    exitq = txb_runs(s, [("How do we know when to stop?   ", ACCENT),
+                         ("when the model decides it is done", MUTED)],
+                     Inches(0.55), Inches(6.82), Inches(12.2), Inches(0.5),
+                     size=20, bold=True, align=PP_ALIGN.CENTER)
+    animate_clicks(s, [[example], [exitq]])
+    add_notes(s,
+        "⏱ 1:00 | Running: ~21:25\n\n"
+        "Now wire output back into input. Practical example: ask for a release note,\n"
+        "have it critique its own draft, rewrite, repeat. Click the example. The hard\n"
+        "part is the exit: when do we stop? Click. The model decides it is done (or a\n"
+        "critic approves, or a max-round cap). Honest catch: with no tools it is grading\n"
+        "its own homework, it cannot actually check anything against the real world.\n"
+        "That is exactly what tools fix.")
+
+
+def s09loop_tools(prs):
+    """Add real tools to the loop and you have an agent (reuses the full diagram)."""
+    s = content_slide(prs, "AGENT", "Agent  =  LOOP( LLM + Tools )")
+    s.shapes.add_picture(asset("agent_diagram_4.png"),
+                         Inches(0), Inches(1.55), Inches(13.33), Inches(4.85))
+    tools = txb(s, "Tools:   web search  ·  run code  ·  shell  ·  read & write files  ·  compile",
+                Inches(0.55), Inches(6.35), Inches(12.2), Inches(0.5),
+                size=18, color=SKY, align=PP_ALIGN.CENTER)
+    payoff = txb(s, "Now the loop can act in the real world, and check its work against it.",
+                 Inches(0.55), Inches(6.88), Inches(12.2), Inches(0.5),
+                 size=18, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+    animate_clicks(s, [[tools], [payoff]])
+    add_notes(s,
+        "⏱ 0:45 | Running: ~22:10\n\n"
+        "Same loop, but now the model can call real tools: search, run code, shell,\n"
+        "files. Click for the tool list, click for the payoff. One question enters at\n"
+        "the LLM; at the bottom it asks 'done?'. If no, it calls a tool, reads the\n"
+        "result, loops. If yes, it exits as the agent output. LLM plus tools plus a\n"
+        "loop. That is an agent.")
+
+
+def s09cloudlocal(prs):
+    """The loop logic runs cloud or local; the model is usually a cloud API."""
+    s = content_slide(prs, "AGENT",
+                       "The loop runs anywhere. The brain is usually in the cloud.")
+    _divider(s)
+    cl_label = txb(s, "CLOUD AGENTS", PL_X, PLABEL_Y, PL_W, Inches(0.5),
+                   size=18, bold=True, color=SKY)
+    cl_sub = txb(s, "the loop runs on someone else's servers", PL_X, Inches(2.5),
+                 PL_W, Inches(0.45), size=15, color=MUTED, italic=True)
+    cl_list = txb_lines(s, ["ChatGPT agent", "Devin", "Manus", "Replit Agent"],
+                        PL_X, Inches(3.2), PL_W, Inches(2.7),
+                        size=24, color=FG, line_spacing=1.25)
+    lo_label = txb(s, "LOCAL AGENTS", PR_X, PLABEL_Y, PR_W, Inches(0.5),
+                   size=18, bold=True, color=ACCENT)
+    lo_sub = txb(s, "the loop runs on your machine", PR_X, Inches(2.5),
+                 PR_W, Inches(0.45), size=15, color=MUTED, italic=True)
+    lo_list = txb_lines(s, ["Claude Code", "Cursor", "Codex CLI", "Aider"],
+                        PR_X, Inches(3.2), PR_W, Inches(2.7),
+                        size=24, color=FG, line_spacing=1.25)
+    footer = txb(s, "Either way, the LLM itself is normally a cloud API. Running the model "
+                    "locally too (Ollama, llama.cpp) is possible, but rare: smaller models, "
+                    "heavier hardware.",
+                 Inches(0.55), Inches(6.35), Inches(12.2), Inches(0.85),
+                 size=16, color=MUTED, align=PP_ALIGN.CENTER)
+    animate_clicks(s, [[cl_label, cl_sub, cl_list],
+                       [lo_label, lo_sub, lo_list], [footer]])
+    add_notes(s,
+        "⏱ 0:50 | Running: ~23:00\n\n"
+        "The loop, the code between the LLM calls, can run anywhere. Cloud agents run\n"
+        "it on someone else's servers (ChatGPT agent, Devin, Manus, Replit). Local\n"
+        "agents run it on your machine (Claude Code, Cursor, Codex CLI, Aider). Click\n"
+        "each side. Key nuance, click the footer: either way the model itself is\n"
+        "usually a cloud API. You can run a local model too (Ollama, llama.cpp), but it\n"
+        "is rare, weaker models and heavy hardware. We are a local agent crowd here.")
+
+
+def s09codingtools(prs):
+    """A coding agent's basic tools (the context-management tools come later)."""
+    s = content_slide(prs, "AGENT", "A coding agent's toolbox")
+
+    rows_left = [
+        ("read files", "open any file in the repo"),
+        ("write & edit files", "change code in place"),
+        ("run shell commands", "build, install, anything"),
+        ("run tests", "check its own work"),
+    ]
+    rows_right = [
+        ("search the codebase", "grep across the repo"),
+        ("git", "diff, commit, branch"),
+        ("compile & build", "turn code into a program"),
+        ("fetch the web", "read docs and pages"),
+    ]
+    y0, step = Inches(2.45), Inches(0.95)
+    for i, (name, desc) in enumerate(rows_left):
+        txb_runs(s, [("▸ ", SKY), (name, FG), ("   " + desc, MUTED)],
+                 PL_X, y0 + step * i, PL_W, Inches(0.7), size=19)
+    for i, (name, desc) in enumerate(rows_right):
+        txb_runs(s, [("▸ ", SKY), (name, FG), ("   " + desc, MUTED)],
+                 PR_X, y0 + step * i, PR_W, Inches(0.7), size=19)
+
+    footer = txb(s, "These are the basics. The tools that manage the agent's own context "
+                    "come next.",
+                 Inches(0.55), Inches(6.45), Inches(12.2), Inches(0.5),
+                 size=17, color=ACCENT, align=PP_ALIGN.CENTER)
+    animate_clicks(s, [[footer]])
+    add_notes(s,
+        "⏱ 0:50 | Running: ~23:50\n\n"
+        "What is actually in the toolbox of a coding agent: read, write and edit files,\n"
+        "run shell commands, run tests, search the repo, git, compile, fetch the web.\n"
+        "Plain, boring, powerful, the same things a developer does. Click the footer:\n"
+        "there is one more class of tools, the ones that manage the agent's own\n"
+        "context. That is the next layer. First, watch this toolbox in action.")
+
+
 def _agent_diagram_slide(prs, eyebrow, title, img_name, notes):
     """Full-bleed agent diagram PNG below the title."""
     s = content_slide(prs, eyebrow, title)
@@ -1403,7 +1632,7 @@ def s09a4_agent_full(prs):
 # Reusable agent walk-through layout ------------------------------------------
 
 def _agent_slide(prs, call_num, total, context_lines, new_lines, decision):
-    s = content_slide(prs, f"LAYER 2 · AGENT  —  CALL {call_num} of {total}",
+    s = content_slide(prs, f"AGENT  —  CALL {call_num} of {total}",
                       "Context accumulates with every step")
 
     box_left, box_top = Inches(0.45), Inches(1.95)
@@ -1443,7 +1672,7 @@ def _agent_slide(prs, call_num, total, context_lines, new_lines, decision):
 
 def s09b_developer_wrote(prs):
     """9b — Just the human question"""
-    s = content_slide(prs, "LAYER 2 · AGENT", "The developer wrote one question")
+    s = content_slide(prs, "AGENT", "The developer wrote one question")
     rect(s, Inches(2.5), Inches(2.7), Inches(8.3), Inches(1.2),
          fill=CODE_BG, line=_HEAD, line_w=Pt(1))
     txb(s, "Who is Taylor Swift's boyfriend?\n"
@@ -1458,7 +1687,7 @@ def s09b_developer_wrote(prs):
 
 def s09b2_developer_full_prompt(prs):
     """9b2 — Full prompt wrapped in system context (hidden)"""
-    s = content_slide(prs, "LAYER 2 · AGENT", "The agent wraps it in context")
+    s = content_slide(prs, "AGENT", "The agent wraps it in context")
     hide(s)
     rect(s, Inches(0.55), Inches(1.95), Inches(12.2), Inches(4.9),
          fill=RGBColor(0x12, 0x22, 0x1E), line=ACCENT, line_w=Pt(1))
@@ -1835,10 +2064,14 @@ def build():
     s08p4_subjective_oneletter(prs)  # property: subjective + one letter
     s08p5_every_letter(prs)          # property: one letter changes everything (cat vs car)
     s08p6_roleplay(prs)              # property: role-play / persona, bridges into Agents
-    s09a1_agent_llm(prs)
-    s09a2_agent_llm_tools(prs)
-    s09a3_agent_loop(prs)
-    s09a4_agent_full(prs)
+    # ── Piece 2 · AGENT ──────────────────────────────────────────────────────
+    s09a0_context_limit(prs)         # LLM limited by input size + growth chart on click
+    s09a0c_too_big(prs)              # ...but some things still do not fit (GoT tokens)
+    s09mr_mapreduce(prs)             # V2: many LLMs + plain code (map-reduce tree)
+    s09loop_notools(prs)             # V3: feed output back in, the exit-point question
+    s09loop_tools(prs)               # V4: add tools -> an agent (full loop diagram)
+    s09cloudlocal(prs)               # cloud vs local agents (brain usually cloud)
+    s09codingtools(prs)              # a coding agent's basic toolbox
     s09b_developer_wrote(prs)
     s09b2_developer_full_prompt(prs)
     s09c_call1(prs)
