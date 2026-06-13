@@ -8,3 +8,7 @@ __pycache__/
 
 # Local symlink to the source/previous presentation project
 prev_pptx
+
+# Generated PowerPoint output (keep the source template tracked)
+*.pptx
+!Cato Presentation Template.pptx
