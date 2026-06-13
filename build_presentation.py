@@ -744,15 +744,11 @@ def s07_breakdown_rings(prs):
     agent_lbl   = polar_label("Agent", 150, 24, SKY, w=2.2, rad=2.95)
     context_lbl = polar_label("Context\nManagement", 30, 20, GOLD, two_line=True, w=2.6, rad=2.95)
 
-    closing = txb(s, "We'll take each one in turn.",
-                  Inches(0.55), Inches(6.5), Inches(12.2), Inches(0.45),
-                  size=18, color=MUTED, align=PP_ALIGN.CENTER)
-
     # Reveal arc by arc; center + "AI" stay put as the arcs build around them.
     animate_clicks(s, [
         [llm_w, llm_lbl],
         [agent_w, agent_lbl],
-        [context_w, context_lbl, closing],
+        [context_w, context_lbl],
     ])
 
     add_notes(s,
@@ -761,7 +757,7 @@ def s07_breakdown_rings(prs):
         "(click) LLM, the core engine.\n"
         "(click) Agent: an LLM with tools and a loop, so it can take actions.\n"
         "(click) Context Management: what we feed and manage around it.\n"
-        "Three equal parts of one whole. 'We'll take each one in turn' over the next sections.\n\n"
+        "Three equal parts of one whole. We'll take each one in turn over the next sections.\n\n"
         "Arcs reveal one per click (PowerPoint 'Appear'; confirm in PowerPoint).")
 
 
@@ -993,6 +989,305 @@ def s08d_hallucination(prs):
         "stated confidently, no warning. Not a bug they forgot to fix: when the training\n"
         "data has no good completion, the model still completes — it has to.\n"
         "Takeaway: confident tone means nothing. Verify specific facts.")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  LLM SECTION  (Piece 1 of AI)  — eyebrow "LLM", colour code = mint (ACCENT)
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Shared geometry for the two-column "property" slides
+PL_X, PL_W = Inches(0.55), Inches(5.55)     # left column
+PDIV_X     = Inches(6.45)                    # centre divider
+PR_X, PR_W = Inches(6.95), Inches(5.85)      # right column
+PLABEL_Y   = Inches(1.95)
+PBODY_Y    = Inches(2.7)
+PBOTTOM_Y  = Inches(6.55)
+
+
+def _divider(s):
+    return rect(s, PDIV_X, Inches(2.0), Pt(1), Inches(4.3), fill=LINE_DIM)
+
+
+def _label(s, text, x, w, color=MUTED):
+    return txb(s, text, x, PLABEL_Y, w, Inches(0.5), size=15, color=color, italic=True)
+
+
+def _ex(s, x, y, w, prompt, answer, psize=19, ph_in=0.5, asize=19, acolor=None):
+    """One autocomplete example: prompt line(s) + '→ answer'. Returns [shapes]."""
+    p = txb(s, prompt, x, y, w, Inches(ph_in), size=psize, color=FG, font=MONO)
+    a = txb(s, "→  " + answer, x, y + Inches(ph_in), w, Inches(0.45),
+            size=asize, color=acolor or ACCENT, font=MONO)
+    return [p, a]
+
+
+def _phase_breadcrumb(s, active):
+    """Static 'Training → Operation' progress pills, top-right; active is 1 or 2."""
+    y = Inches(0.6)
+    pw, ph_, gap = Inches(1.7), Inches(0.5), Inches(0.55)
+    x = Inches(8.7)
+    for label, n in [("Training", 1), ("Operation", 2)]:
+        on = (n == active)
+        rect(s, x, y, pw, ph_, fill=BOX_FILL if on else None,
+             line=ACCENT if on else LINE_DIM, line_w=Pt(1.5) if on else Pt(1))
+        txb(s, label, x, y + Inches(0.08), pw, Inches(0.4), size=14, bold=on,
+            color=ACCENT if on else MUTED, align=PP_ALIGN.CENTER)
+        if n == 1:
+            txb(s, "→", x + pw, y, gap, ph_, size=20, color=MUTED, align=PP_ALIGN.CENTER)
+        x = x + pw + gap
+
+
+def s08_llm_opener(prs):
+    """LLM section opener — Large Language Model: another ML algorithm, a black box."""
+    s = image_slide(prs)
+    llm = txb(s, "LLM", Inches(0), Inches(0.95), Inches(13.33), Inches(1.2),
+              size=64, bold=True, color=ACCENT, align=PP_ALIGN.CENTER, font=HEAD)
+    full = txb(s, "Large Language Model", Inches(0), Inches(2.25), Inches(13.33), Inches(0.7),
+               size=32, bold=True, color=FG, align=PP_ALIGN.CENTER)
+    ml = txb(s, "just another machine learning algorithm", Inches(0), Inches(2.98),
+             Inches(13.33), Inches(0.5), size=20, color=MUTED, align=PP_ALIGN.CENTER, italic=True)
+
+    # The black box: opaque, we won't look inside.
+    box_w, box_h = Inches(3.0), Inches(1.45)
+    box_x, box_y = Inches((13.33 - 3.0) / 2), Inches(3.95)
+    box = rect(s, box_x, box_y, box_w, box_h,
+               fill=RGBColor(0x0B, 0x15, 0x12), line=ACCENT, line_w=Pt(1.5))
+    box_t = txb(s, "LLM", box_x, box_y + Inches(0.4), box_w, Inches(0.7),
+                size=30, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+    cap = txb(s, "We'll treat it as a black box.", Inches(0), Inches(5.65),
+              Inches(13.33), Inches(0.6), size=22, bold=True, color=FG, align=PP_ALIGN.CENTER)
+
+    animate_clicks(s, [[llm], [full], [ml], [box, box_t, cap]])
+    add_notes(s,
+        "⏱ 0:40 | Running: ~7:30\n\n"
+        "The first piece of AI is the LLM. It just means Large Language Model.\n"
+        "Demystify it right away: it is not magic, it is just another machine\n"
+        "learning algorithm. And for this whole talk we won't open it up, we'll\n"
+        "treat it as a black box: text goes in, text comes out.\n"
+        "(Reveal is a PowerPoint 'Appear' animation, confirm in PowerPoint.)")
+
+
+def s08t_training(prs):
+    """Phase 1 — Training (uses llm_training.png)."""
+    s = content_slide(prs, "LLM", "Phase 1 · Training")
+    _phase_breadcrumb(s, active=1)
+    pic = s.shapes.add_picture(asset("llm_training.png"),
+                               Inches(0.6), Inches(2.15), height=Inches(3.95))
+    pic.line.color.rgb = ACCENT
+    pic.line.width = Pt(1.5)
+
+    head_t = txb(s, "It trains on text\nhumans have written.", Inches(6.85), Inches(2.25),
+                 Inches(6.0), Inches(1.2), size=26, bold=True, color=FG)
+    nature = txb(s, "Full of mistakes, opinions,\njokes, memes, even trolling.",
+                 Inches(6.85), Inches(3.65), Inches(6.0), Inches(1.1), size=20, color=MUTED)
+    frozen = txb(s, "And then it freezes in time.", Inches(6.85), Inches(5.05), Inches(6.0),
+                 Inches(0.7), size=26, bold=True, color=ACCENT)
+
+    animate_clicks(s, [[pic, head_t], [nature], [frozen]])
+    add_notes(s,
+        "⏱ 1:15 | Running: ~8:45\n\n"
+        "Phase 1, training, happens once, up front. It is fed an enormous slice of\n"
+        "everything people have written, books, code, Reddit, news, Wikipedia, and\n"
+        "learns the patterns in it. Two things to say out loud:\n"
+        " 1. That text is human, so it carries our mistakes, opinions, jokes, memes,\n"
+        "    even deliberate trolling. It is a mirror of the corpus, not an oracle.\n"
+        " 2. When training ends, it FREEZES. Its knowledge stops at that moment.\n"
+        "Then comes phase 2, operation, which is what we actually use.")
+
+
+def s08op_operation(prs):
+    """Phase 2 — Operation: a black box of autocomplete (Cato joke)."""
+    s = content_slide(prs, "LLM", "Phase 2 · Operation")
+    _phase_breadcrumb(s, active=2)
+
+    txb(s, "It just autocompletes text.", Inches(0.55), Inches(1.55), Inches(12.2), Inches(0.5),
+        size=24, bold=True, color=ACCENT)
+
+    txb(s, "INPUT", Inches(0.55), Inches(2.25), Inches(2), Inches(0.4), size=13, color=MUTED)
+    code_block(s, '"Cato Networks is the best SASE company in the ___"',
+               Inches(0.55), Inches(2.65), Inches(12.2), Inches(0.65), size=16)
+    txb(s, "↓", Inches(0), Inches(3.35), Inches(13.33), Inches(0.5),
+        size=28, color=ACCENT, align=PP_ALIGN.CENTER)
+    rect(s, Inches(5.0), Inches(3.85), Inches(3.3), Inches(1.05),
+         fill=RGBColor(0x0B, 0x15, 0x12), line=ACCENT, line_w=Pt(1.5))
+    txb(s, "LLM", Inches(5.0), Inches(3.98), Inches(3.3), Inches(0.6),
+        size=32, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+    txb(s, "↓", Inches(0), Inches(4.95), Inches(13.33), Inches(0.5),
+        size=28, color=ACCENT, align=PP_ALIGN.CENTER)
+    txb(s, "OUTPUT", Inches(0.55), Inches(5.45), Inches(2), Inches(0.4), size=13, color=MUTED)
+
+    rect(s, Inches(0.55), Inches(5.85), Inches(12.2), Inches(0.65), fill=CODE_BG)  # empty panel
+    ans = txb(s, '"Universe!"', Inches(0.75), Inches(5.95), Inches(12), Inches(0.5),
+              size=18, color=CODE_FG, font=MONO)
+
+    animate_clicks(s, [[ans]])
+    add_notes(s,
+        "⏱ 0:50 | Running: ~9:35\n\n"
+        "Operation is what happens every time you use it. Forget the internals,\n"
+        "treat it as a black box of autocomplete. Read the prompt out loud, pause,\n"
+        "ask the room to complete it (most say 'world'). Click: 'Universe!'\n"
+        "It has seen enough Cato marketing to complete it that way. It is not\n"
+        "thinking, it is picking the most probable next words. That is the whole job.")
+
+
+def s08p1_trivial_logic(prs):
+    """Property: trivial pattern, and real logic."""
+    s = content_slide(prs, "LLM", "Trivial, yet it can reason")
+    _divider(s)
+    left = [_label(s, "A 4-year-old could do these", PL_X, PL_W)]
+    y = PBODY_Y
+    for pr, an in [('"The sky is ___"', '"blue"'), ('"Dogs say ___"', '"woof"')]:
+        left += _ex(s, PL_X, y, PL_W, pr, an, psize=22, asize=22)
+        y += Inches(1.25)
+
+    right = [_label(s, "And yet, logic from everything ever written", PR_X, PR_W)]
+    right += _ex(s, PR_X, PBODY_Y, PR_W,
+                 '"All humans are mortal.\nSocrates is human.\nTherefore Socrates is ___"',
+                 '"mortal"', psize=18, ph_in=1.3, asize=18)
+    right += _ex(s, PR_X, Inches(4.6), PR_W,
+                 '"I fly near light-speed to a star\nand back. Next to my twin, I aged ___"',
+                 '"less"', psize=18, ph_in=1.0, asize=18)
+
+    bottom = txb(s, "The mechanism is trivial. The scale is not.",
+                 PL_X, PBOTTOM_Y, Inches(12.2), Inches(0.5),
+                 size=18, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+    animate_clicks(s, [left, right, [bottom]])
+    add_notes(s,
+        "⏱ 1:30 | Running: ~11:05\n\n"
+        "Left: pure pattern matching, a small child completes these. Right: the same\n"
+        "autocomplete, but now it is completing logic and physics, because it has read\n"
+        "enough philosophy and science text to know how those sentences end. The twin\n"
+        "paradox 'less' comes from the corpus, not from first-principles reasoning.\n"
+        "Same trivial mechanism, run at an enormous scale.")
+
+
+def s08p2_knowledge_frozen(prs):
+    """Property: holds general knowledge, but frozen in time."""
+    s = content_slide(prs, "LLM", "It knows a lot, up to a point")
+    _divider(s)
+    left = [_label(s, "General human knowledge", PL_X, PL_W)]
+    y = PBODY_Y
+    for pr, an in [('"The capital of Japan is ___"', '"Tokyo"'),
+                   ('"Romeo and ___"', '"Juliet"'),
+                   ('"Water is two parts hydrogen,\none part ___"', '"oxygen"')]:
+        left += _ex(s, PL_X, y, PL_W, pr, an, psize=19, ph_in=0.5 if "\n" not in pr else 0.85, asize=19)
+        y += Inches(1.05 if "\n" not in pr else 1.4)
+
+    right = [_label(s, "Frozen at training time", PR_X, PR_W)]
+    right += _ex(s, PR_X, PBODY_Y, PR_W,
+                 '"The news this morning was ___"', '"(it cannot know)"', psize=19, asize=19)
+    right += _ex(s, PR_X, Inches(4.15), PR_W,
+                 '"The latest model released is ___"', '"(whatever was current then)"',
+                 psize=19, asize=19)
+
+    bottom = txb(s, "It learned the world once, then stopped.",
+                 PL_X, PBOTTOM_Y, Inches(12.2), Inches(0.5),
+                 size=18, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+    animate_clicks(s, [left, right, [bottom]])
+    add_notes(s,
+        "⏱ 1:15 | Running: ~12:20\n\n"
+        "Left: it carries a huge amount of general knowledge, geography, literature,\n"
+        "science, all from the training text. Right: but it is frozen. Ask about\n"
+        "today's news or the newest release and it cannot know, it can only guess\n"
+        "from whatever was true when training ended. This is the 'knowledge cutoff'.\n"
+        "Takeaway: great for settled knowledge, unreliable for anything recent.")
+
+
+def s08p3_statistical_predicts(prs):
+    """Property: statistical (same prompt, different answers) + predicts, not looks up."""
+    s = content_slide(prs, "LLM", "A guess, not a lookup")
+    _divider(s)
+    left = [_label(s, "Same prompt, run twice", PL_X, PL_W)]
+    left.append(txb(s, '"A good name for a coffee shop: ___"',
+                    PL_X, PBODY_Y, PL_W, Inches(0.9), size=19, color=FG, font=MONO))
+    left.append(txb(s, '→  "The Daily Grind"', PL_X, Inches(3.75), PL_W, Inches(0.45),
+                    size=19, color=ACCENT, font=MONO))
+    left.append(txb(s, '→  "Bean There, Done That"', PL_X, Inches(4.35), PL_W, Inches(0.45),
+                    size=19, color=SKY, font=MONO))
+
+    right = [_label(s, "It predicts, it does not look up", PR_X, PR_W)]
+    right.append(txb(s, "There is no database behind it.\nIt generates the most likely text.",
+                     PR_X, PBODY_Y, PR_W, Inches(1.1), size=20, color=FG))
+    right += _ex(s, PR_X, Inches(4.3), PR_W,
+                 '"My account number is ___"', '"(it will invent one)"', psize=19, asize=19)
+
+    bottom = txb(s, "Same question, different answers. Probability, not retrieval.",
+                 PL_X, PBOTTOM_Y, Inches(12.2), Inches(0.5),
+                 size=18, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+    animate_clicks(s, [left, right, [bottom]])
+    add_notes(s,
+        "⏱ 1:15 | Running: ~13:35\n\n"
+        "Left: run the exact same prompt twice and you can get different answers.\n"
+        "It samples from probabilities, it is not deterministic by default. Right:\n"
+        "this is because it predicts likely text, it does not retrieve facts from a\n"
+        "store. Ask for something it cannot know, like your account number, and it\n"
+        "will happily generate a plausible one. Probability, not retrieval.")
+
+
+def s08p4_subjective_oneletter(prs):
+    """Property: subjective + one letter changes everything (cat vs car)."""
+    s = content_slide(prs, "LLM", "Opinionated, and easily nudged")
+    _divider(s)
+    left = [_label(s, "Subjective", PL_X, PL_W)]
+    left += _ex(s, PL_X, PBODY_Y, PL_W,
+                '"The best programming\nlanguage is ___"', '"Python"  (it has opinions)',
+                psize=18, ph_in=0.95, asize=18)
+    left += _ex(s, PL_X, Inches(4.35), PL_W,
+                '"The greatest band ever is ___"', '"The Beatles"', psize=18, asize=18)
+
+    right = [_label(s, "One letter changes everything", PR_X, PR_W)]
+    right.append(txb(s, '"A cat walked into a library\nand asked for a book about ___"',
+                     PR_X, PBODY_Y, PR_W, Inches(1.0), size=18, color=FG, font=MONO))
+    right.append(txb(s, '→  "...fish."', PR_X, Inches(3.7), PR_W, Inches(0.45),
+                     size=18, color=ACCENT, font=MONO))
+    right.append(txb(s, '"A car walked into a library..."',
+                     PR_X, Inches(4.35), PR_W, Inches(0.5), size=18, color=FG, font=MONO))
+    right.append(txb(s, '→  "...roads and highways."', PR_X, Inches(4.95), PR_W, Inches(0.45),
+                     size=18, color=SKY, font=MONO))
+
+    bottom = txb(s, "No single truth. And one token can flip the whole thing.",
+                 PL_X, PBOTTOM_Y, Inches(12.2), Inches(0.5),
+                 size=18, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+    animate_clicks(s, [left, right, [bottom]])
+    add_notes(s,
+        "⏱ 1:30 | Running: ~15:05\n\n"
+        "Left: ask it for 'the best' anything and it answers with an opinion, the\n"
+        "majority view of its training text. There is no single truth in there.\n"
+        "Right: cat versus car, one letter, and the whole completion changes. It\n"
+        "reads every token; each one steers the guess. This is why prompt wording\n"
+        "matters so much, one word early can change the entire response.")
+
+
+def s08p5_confident_nomemory(prs):
+    """Property: confidently wrong (hallucination) + no memory; bridges to Context."""
+    s = content_slide(prs, "LLM", "Two things to never forget")
+    _divider(s)
+    left = [_label(s, "Confidently wrong (hallucination)", PL_X, PL_W)]
+    left.append(txb(s, '"Who won the 1987 Tulsa\nchess championship?"',
+                    PL_X, PBODY_Y, PL_W, Inches(1.0), size=18, color=FG, font=MONO))
+    left.append(txb(s, '→  "David Harrington, a local\n    teacher who..."',
+                    PL_X, Inches(3.8), PL_W, Inches(0.95), size=18, color=ACCENT, font=MONO))
+    left.append(txb(s, "He does not exist. It never says\n\"I don't know\" by default.",
+                    PL_X, Inches(5.05), PL_W, Inches(0.9), size=17, color=MUTED))
+
+    right = [_label(s, "No memory between calls", PR_X, PR_W)]
+    right.append(txb(s, "Every call starts from zero.",
+                     PR_X, PBODY_Y, PR_W, Inches(0.6), size=22, bold=True, color=FG))
+    right.append(txb(s, "It only knows what is in the prompt\n"
+                        "right now. Close the tab and it\nforgets everything.",
+                     PR_X, Inches(3.5), PR_W, Inches(1.4), size=20, color=MUTED))
+
+    bridge = txb(s, "Which is exactly why its context matters.   (next)",
+                 PL_X, PBOTTOM_Y, Inches(12.2), Inches(0.5),
+                 size=19, bold=True, color=GOLD, align=PP_ALIGN.CENTER)
+    animate_clicks(s, [left, right, [bridge]])
+    add_notes(s,
+        "⏱ 1:30 | Running: ~16:35\n\n"
+        "Two cautions to carry forward. Left: when it has no good data it still\n"
+        "completes, confidently. David Harrington is a plausible name and story,\n"
+        "stated with zero hesitation. Tone is not correctness, verify specifics.\n"
+        "Right: it has no memory. Every call starts from zero, it only knows what\n"
+        "is in the prompt. Close the tab and it forgets you. That is the perfect\n"
+        "bridge to the next piece: managing what goes into its context.")
 
 
 def _agent_diagram_slide(prs, eyebrow, title, img_name, notes):
@@ -1419,11 +1714,15 @@ def build():
     s04b_done_before_timeline(prs)   # variant A2
     s05_ai_different(prs)
     s07_breakdown_rings(prs)         # replaces pin-reveal + the layer-stack roadmap
-    s08a_llm_blackbox(prs)
-    s08a2_llm_blackbox_reveal(prs)
-    s08b_autocomplete(prs)
-    s08c_context_sensitivity(prs)
-    s08d_hallucination(prs)
+    # ── Piece 1 · LLM ────────────────────────────────────────────────────────
+    s08_llm_opener(prs)              # LLM = Large Language Model; two phases
+    s08t_training(prs)               # Phase 1: Training (llm_training.png)
+    s08op_operation(prs)             # Phase 2: black-box autocomplete (Cato joke)
+    s08p1_trivial_logic(prs)         # property: trivial + logic
+    s08p2_knowledge_frozen(prs)      # property: knowledge + frozen in time
+    s08p3_statistical_predicts(prs)  # property: statistical + predicts, not lookup
+    s08p4_subjective_oneletter(prs)  # property: subjective + one letter
+    s08p5_confident_nomemory(prs)    # property: confidently wrong + no memory (→ Context)
     s09a1_agent_llm(prs)
     s09a2_agent_llm_tools(prs)
     s09a3_agent_loop(prs)
