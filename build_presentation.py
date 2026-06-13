@@ -18,7 +18,7 @@ import os
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
-from pptx.enum.text import PP_ALIGN
+from pptx.enum.text import PP_ALIGN, MSO_AUTO_SIZE
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.oxml.ns import qn, nsdecls
 from pptx.oxml import parse_xml
@@ -128,6 +128,7 @@ def txb(slide, text, left, top, width, height,
     tf_box = slide.shapes.add_textbox(left, top, width, height)
     tf = tf_box.text_frame
     tf.word_wrap = True
+    tf.auto_size = MSO_AUTO_SIZE.NONE   # keep authored size; avoids PowerPoint reflow gaps
     p = tf.paragraphs[0]
     p.alignment = align
     run = p.add_run()
@@ -1131,23 +1132,26 @@ def s08op_operation(prs):
 
 def s08p1_trivial_logic(prs):
     """Property: trivial pattern, and real logic. Prompts first, answers on click."""
-    s = content_slide(prs, "LLM", "Trivial, yet it can reason")
+    s = content_slide(prs, "LLM", "It can be trivial, it can reason")
     _divider(s)
-    sky_p,  sky_a  = _ex(s, PL_X, Inches(2.7), PL_W, '"The sky is ___"', '"blue"', psize=22, asize=22)
-    dog_p,  dog_a  = _ex(s, PL_X, Inches(4.4), PL_W, '"Dogs say ___"', '"woof"', psize=22, asize=22)
+    sky_p,  sky_a  = _ex(s, PL_X, Inches(2.7), PL_W, '"The sky is ___"', '"blue"', psize=22, ph_in=0.42, asize=22)
+    dog_p,  dog_a  = _ex(s, PL_X, Inches(4.4), PL_W, '"Dogs say ___"', '"woof"', psize=22, ph_in=0.42, asize=22)
     soc_p,  soc_a  = _ex(s, PR_X, Inches(2.7), PR_W,
-                         '"All humans are mortal.\nSocrates is human.\nTherefore Socrates is ___"',
-                         '"mortal"', psize=18, ph_in=1.35, asize=18)
-    twin_p, twin_a = _ex(s, PR_X, Inches(4.75), PR_W,
-                         '"I fly near light-speed to a star\nand back. Next to my twin, I aged ___"',
-                         '"less"', psize=18, ph_in=1.0, asize=18)
+                         '"All humans are mortal. Socrates is\nhuman. Therefore Socrates is ___"',
+                         '"mortal"', psize=18, ph_in=0.9, asize=18)
+    twin_p, twin_a = _ex(s, PR_X, Inches(4.6), PR_W,
+                         '"I fly near light-speed to a star and\nback. Next to my twin, I aged ___"',
+                         '"less"', psize=18, ph_in=0.9, asize=18)
 
-    # One example at a time: sentence appears, click reveals its answer, then the next.
+    # Per side: both sentences appear at once, then answers one by one; next click
+    # brings up the other side's sentences.
     animate_clicks(s, [
-        [sky_p],  [sky_a],
-        [dog_p],  [dog_a],
-        [soc_p],  [soc_a],
-        [twin_p], [twin_a],
+        [sky_p, dog_p],     # left: sentences to complete, together
+        [sky_a],            # then answers, one by one
+        [dog_a],
+        [soc_p, twin_p],    # right: sentences to complete, together
+        [soc_a],
+        [twin_a],
     ])
     add_notes(s,
         "⏱ 1:30 | Running: ~11:05\n\n"
@@ -1162,25 +1166,27 @@ def s08p2_knowledge_frozen(prs):
     """Property: holds general knowledge, but frozen in time. Prompts first, answers on click."""
     s = content_slide(prs, "LLM", "It knows a lot, up to a point")
     _divider(s)
-    jp_p, jp_a = _ex(s, PL_X, Inches(2.6), PL_W, '"The capital of Japan is ___"', '"Tokyo"', psize=19, asize=19)
-    ro_p, ro_a = _ex(s, PL_X, Inches(3.65), PL_W, '"Romeo and ___"', '"Juliet"', psize=19, asize=19)
-    wa_p, wa_a = _ex(s, PL_X, Inches(4.7), PL_W,
-                     '"Water is two parts hydrogen,\none part ___"', '"oxygen"',
-                     psize=19, ph_in=0.85, asize=19)
+    jp_p, jp_a = _ex(s, PL_X, Inches(2.7), PL_W, '"The capital of Japan is ___"', '"Tokyo"', psize=19, ph_in=0.45, asize=19)
+    ro_p, ro_a = _ex(s, PL_X, Inches(4.0), PL_W, '"Romeo and ___"', '"Juliet"', psize=19, ph_in=0.45, asize=19)
+    wa_p, wa_a = _ex(s, PL_X, Inches(5.3), PL_W,
+                     '"Water is hydrogen and ___"', '"oxygen"', psize=19, ph_in=0.45, asize=19)
 
-    ne_p, ne_a = _ex(s, PR_X, Inches(2.6), PR_W,
-                     '"The news this morning was ___"', '"(it cannot know)"', psize=19, asize=19)
-    md_p, md_a = _ex(s, PR_X, Inches(4.3), PR_W,
+    ne_p, ne_a = _ex(s, PR_X, Inches(2.7), PR_W,
+                     '"The news this morning was ___"', '"(it cannot know)"', psize=19, ph_in=0.45, asize=19)
+    md_p, md_a = _ex(s, PR_X, Inches(4.4), PR_W,
                      '"The latest model released is ___"', '"(whatever was current then)"',
-                     psize=19, asize=19)
+                     psize=19, ph_in=0.45, asize=19)
 
-    # One example at a time: sentence appears, click reveals its answer, then the next.
+    # Per side: sentences appear together, then answers one by one; next click
+    # brings up the other side's sentences.
     animate_clicks(s, [
-        [jp_p], [jp_a],
-        [ro_p], [ro_a],
-        [wa_p], [wa_a],
-        [ne_p], [ne_a],
-        [md_p], [md_a],
+        [jp_p, ro_p, wa_p],   # left: sentences to complete, together
+        [jp_a],               # then answers, one by one
+        [ro_a],
+        [wa_a],
+        [ne_p, md_p],         # right: sentences to complete, together
+        [ne_a],
+        [md_a],
     ])
     add_notes(s,
         "⏱ 1:15 | Running: ~12:20\n\n"
@@ -1193,27 +1199,30 @@ def s08p2_knowledge_frozen(prs):
 
 def s08p3_statistical_predicts(prs):
     """Property: statistical (same prompt, different answers) + predicts, not looks up."""
-    s = content_slide(prs, "LLM", "A guess, not a lookup")
+    s = content_slide(prs, "LLM", "It always answers, even when guessing")
     _divider(s)
+
     coffee_p = txb(s, '"A good name for a coffee shop: ___"',
-                   PL_X, Inches(2.7), PL_W, Inches(0.9), size=19, color=FG, font=MONO)
-    a1 = txb(s, '→  "The Daily Grind"', PL_X, Inches(3.75), PL_W, Inches(0.45),
+                   PL_X, Inches(2.4), PL_W, Inches(0.45), size=19, color=FG, font=MONO)
+    a1 = txb(s, '→  "The Daily Grind"', PL_X, Inches(2.95), PL_W, Inches(0.45),
              size=19, color=ACCENT, font=MONO)
-    a2 = txb(s, '→  "Bean There, Done That"', PL_X, Inches(4.35), PL_W, Inches(0.45),
+    a2 = txb(s, '→  "Bean There, Done That"', PL_X, Inches(3.55), PL_W, Inches(0.45),
              size=19, color=SKY, font=MONO)
 
-    acct_p, acct_a = _ex(s, PR_X, Inches(2.7), PR_W,
-                         '"My account number is ___"', '"(it invents one)"', psize=19, asize=19)
-    wx_p, wx_a     = _ex(s, PR_X, Inches(4.4), PR_W,
-                         '"The weather right now is ___"', '"(it cannot look)"', psize=19, asize=19)
+    acct_p, acct_a = _ex(s, PR_X, Inches(2.4), PR_W,
+                         '"My account number is ___"', '"(it invents one)"', psize=19, ph_in=0.45, asize=19)
+    wx_p, wx_a     = _ex(s, PR_X, Inches(4.0), PR_W,
+                         '"The weather right now is ___"', '"(it cannot look)"', psize=19, ph_in=0.45, asize=19)
 
-    # One example at a time; the coffee prompt gets two different answers, one per click.
+    # Left side is one sentence with two answers (one per click); next click brings
+    # up the right side's sentences together, then their answers one by one.
     animate_clicks(s, [
-        [coffee_p],          # the sentence to complete
+        [coffee_p],          # left: the sentence to complete
         [a1],                # one answer
         [a2],                # run it again, a different answer
-        [acct_p], [acct_a],
-        [wx_p],   [wx_a],
+        [acct_p, wx_p],      # right: sentences to complete, together
+        [acct_a],
+        [wx_a],
     ])
     add_notes(s,
         "⏱ 1:15 | Running: ~13:35\n\n"
