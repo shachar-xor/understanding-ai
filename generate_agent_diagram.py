@@ -237,11 +237,12 @@ flow_label(ax, 3.0, 3.9, "Your prompt", color=ACCENT, fontsize=15, style="normal
            va="bottom")
 # main spine
 flow_box(ax, 3.0, SPINE, 2.2, 1.0, "LLM", ACCENT, fontsize=19)
-flow_box(ax, 6.7, SPINE, 2.3, 1.0, "draft", TOOLS_C, fontsize=18)
 flow_diamond(ax, 10.4, SPINE, 2.8, 1.5, "good\nenough?", GOLD, fontsize=15)
 flow_box(ax, 13.7, SPINE, 2.3, 1.0, "final tweet", FG, fontsize=16)
-flow_arrow(ax, 3.0 + 1.1, SPINE, 6.7 - 1.15, SPINE)
-flow_arrow(ax, 6.7 + 1.15, SPINE, 10.4 - 1.4, SPINE)
+# the draft is the LLM's output, so it labels the arrow into the check
+flow_arrow(ax, 3.0 + 1.1, SPINE, 10.4 - 1.4, SPINE)
+flow_label(ax, (3.0 + 1.1 + 10.4 - 1.4) / 2, SPINE + 0.26, "draft", color=TOOLS_C,
+           fontsize=14, va="bottom")
 flow_arrow(ax, 10.4 + 1.4, SPINE, 13.7 - 1.15, SPINE)
 flow_label(ax, (10.4 + 1.4 + 13.7 - 1.15) / 2, SPINE + 0.26, "yes", color=ACCENT,
            fontsize=13, style="normal", va="bottom")

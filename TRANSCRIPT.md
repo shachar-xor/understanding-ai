@@ -4,7 +4,8 @@ A slide-by-slide script of what to say, with per-slide and running time estimate
 Written for the deck as it currently stands (36 slides, `understanding_ai_for_geeks.pptx`).
 
 - Pace assumed: calm, conversational, with pauses for clicks and audience replies.
-- Total body: **~36 minutes**. Add **~3-4 minutes** of Q&A for **~40 minutes** overall.
+- Total body: **~36 minutes** of talking. **Slot is 45 minutes, no Q&A reserve**, so you
+  have roughly **~8-9 minutes of headroom** to add slides. See the slide budget below.
 - Times in **(this slide / running total)**. "[click]" marks an animation reveal.
 
 ---
@@ -467,12 +468,34 @@ Thank you. Happy to take questions."
 | Layer 2: Agent | 17-29 | ~10:55 |
 | Layer 3: Context Management | 30-33 | ~5:30 |
 | Wrap-up & takeaways | 34-36 | ~3:30 |
-| **Body total** | | **~36:15** |
-| Q&A | | ~3-4 min |
-| **Grand total** | | **~40 min** |
+| **Body total (36 slides)** | | **~36:15** |
+| **Target slot** | | **45:00** |
+| **Headroom to fill** | | **~8:45** |
 
-> If you need to land closer to 30 minutes, the Agent section is where the slack is:
-> - Slides 17-18 (context window + Game of Thrones) can be compressed to one beat each (~30s saved).
-> - Slide 22 (cloud vs local) and slide 23 (toolbox) can each lose ~20s by naming fewer examples.
-> - Slides 11-14 can each lose 15-20s by cutting to one example per side.
-> Protect the agent walkthrough (slides 24-29) and the takeaways (35), those are the heart of the talk.
+### How many more slides can I add?
+
+The current deck averages **~1:00 per slide** (36:15 across 36 slides), but that average
+hides a wide spread. Use the slide *type* to budget, not the count:
+
+| Slide type | Examples in deck | Est. time each | Fits in ~8:45 |
+|---|---|---|---|
+| Light transition / single-line build | 24, 34 | ~0:25 | ~20 slides |
+| Standard example or concept slide | 10, 15, 22, 23 | ~0:50 | ~10 slides |
+| Dense, multi-point or animated slide | 30, 31, 33 | ~1:30 | ~6 slides |
+| Payoff / take-your-time slide | 35 | ~2:30 | ~3 slides |
+
+**Practical read:** you can comfortably add **~8-10 typical slides**, or **~6 heavier ones**,
+and still land inside 45 minutes. A realistic mixed batch (say 3 dense + 5 light) runs
+~7-8 minutes, which fits with a small buffer.
+
+> ⚠️ These are model estimates, not a stopwatch. Real delivery varies ±15% with pacing,
+> audience reactions, and ad-libs. At ~36 min estimated, a real run could land anywhere
+> from ~31 to ~42 min before you add anything. Treat ~8:45 of headroom as ~6-7 min of
+> *safe* budget, and confirm with your pilot run before committing the last few slides.
+
+> Where new slides fit naturally without bloating a section:
+> - **Layer 1 (LLM):** another "trait" slide in the 11-16 series is cheap (~0:50) and on-pattern.
+> - **Layer 2 (Agent):** a concrete real-world agent example, or a "what can go wrong in the
+>   loop" slide, slots in after 29.
+> - **Layer 3 (Context):** a Cato-specific context-management example would land well after 32.
+> - **Wrap-up:** a "what to try this week" / call-to-action slide before 35-36.

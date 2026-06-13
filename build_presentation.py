@@ -1498,20 +1498,17 @@ def s09loop_tools(prs):
     s = content_slide(prs, "AGENT", "Agent  =  LOOP( LLM + Tools )")
     s.shapes.add_picture(asset("agent_diagram_4.png"),
                          Inches(0), Inches(1.55), Inches(13.33), Inches(4.85))
-    tools = txb(s, "Tools:   web search  ·  run code  ·  shell  ·  read & write files  ·  compile",
-                Inches(0.55), Inches(6.35), Inches(12.2), Inches(0.5),
+    tools = txb(s, "Tools:   web search  ·  calculator  ·  shell commands",
+                Inches(0.55), Inches(6.55), Inches(12.2), Inches(0.5),
                 size=18, color=SKY, align=PP_ALIGN.CENTER)
-    payoff = txb(s, "Now the loop can act in the real world, and check its work against it.",
-                 Inches(0.55), Inches(6.88), Inches(12.2), Inches(0.5),
-                 size=18, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
-    animate_clicks(s, [[tools], [payoff]])
+    animate_clicks(s, [[tools]])
     add_notes(s,
         "⏱ 0:45 | Running: ~22:10\n\n"
-        "Same loop, but now the model can call real tools: search, run code, shell,\n"
-        "files. Click for the tool list, click for the payoff. One question enters at\n"
-        "the LLM; at the bottom it asks 'done?'. If no, it calls a tool, reads the\n"
-        "result, loops. If yes, it exits as the agent output. LLM plus tools plus a\n"
-        "loop. That is an agent.")
+        "Same loop, but now the model can call real tools: search, calculator, shell\n"
+        "commands. Click for the tool list. One question enters at the LLM; at the\n"
+        "bottom it asks 'done?'. If no, it calls a tool, reads the result, loops. If\n"
+        "yes, it exits as the agent output. LLM plus tools plus a loop. That is an\n"
+        "agent.")
 
 
 def s09cloudlocal(prs):
@@ -1521,71 +1518,22 @@ def s09cloudlocal(prs):
     _divider(s)
     cl_label = txb(s, "CLOUD AGENTS", PL_X, PLABEL_Y, PL_W, Inches(0.5),
                    size=18, bold=True, color=SKY)
-    cl_sub = txb(s, "the loop runs on someone else's servers", PL_X, Inches(2.5),
-                 PL_W, Inches(0.45), size=15, color=MUTED, italic=True)
-    cl_list = txb_lines(s, ["ChatGPT agent", "Devin", "Manus", "Replit Agent"],
-                        PL_X, Inches(3.2), PL_W, Inches(2.7),
+    cl_list = txb_lines(s, ["ChatGPT agent", "Gemini in Google Search", "Slackbot"],
+                        PL_X, Inches(2.75), PL_W, Inches(2.7),
                         size=24, color=FG, line_spacing=1.25)
     lo_label = txb(s, "LOCAL AGENTS", PR_X, PLABEL_Y, PR_W, Inches(0.5),
                    size=18, bold=True, color=ACCENT)
-    lo_sub = txb(s, "the loop runs on your machine", PR_X, Inches(2.5),
-                 PR_W, Inches(0.45), size=15, color=MUTED, italic=True)
-    lo_list = txb_lines(s, ["Claude Code", "Cursor", "Codex CLI", "Aider"],
-                        PR_X, Inches(3.2), PR_W, Inches(2.7),
+    lo_list = txb_lines(s, ["Claude Code", "Cursor", "Codex CLI"],
+                        PR_X, Inches(2.75), PR_W, Inches(2.7),
                         size=24, color=FG, line_spacing=1.25)
-    footer = txb(s, "Either way, the LLM itself is normally a cloud API. Running the model "
-                    "locally too (Ollama, llama.cpp) is possible, but rare: smaller models, "
-                    "heavier hardware.",
-                 Inches(0.55), Inches(6.35), Inches(12.2), Inches(0.85),
-                 size=16, color=MUTED, align=PP_ALIGN.CENTER)
-    animate_clicks(s, [[cl_label, cl_sub, cl_list],
-                       [lo_label, lo_sub, lo_list], [footer]])
+    animate_clicks(s, [[cl_label, cl_list], [lo_label, lo_list]])
     add_notes(s,
-        "⏱ 0:50 | Running: ~23:00\n\n"
+        "⏱ 0:45 | Running: ~23:00\n\n"
         "The loop, the code between the LLM calls, can run anywhere. Cloud agents run\n"
-        "it on someone else's servers (ChatGPT agent, Devin, Manus, Replit). Local\n"
-        "agents run it on your machine (Claude Code, Cursor, Codex CLI, Aider). Click\n"
-        "each side. Key nuance, click the footer: either way the model itself is\n"
-        "usually a cloud API. You can run a local model too (Ollama, llama.cpp), but it\n"
-        "is rare, weaker models and heavy hardware. We are a local agent crowd here.")
-
-
-def s09codingtools(prs):
-    """A coding agent's basic tools (the context-management tools come later)."""
-    s = content_slide(prs, "AGENT", "A coding agent's toolbox")
-
-    rows_left = [
-        ("read files", "open any file in the repo"),
-        ("write & edit files", "change code in place"),
-        ("run shell commands", "build, install, anything"),
-        ("run tests", "check its own work"),
-    ]
-    rows_right = [
-        ("search the codebase", "grep across the repo"),
-        ("git", "diff, commit, branch"),
-        ("compile & build", "turn code into a program"),
-        ("fetch the web", "read docs and pages"),
-    ]
-    y0, step = Inches(2.45), Inches(0.95)
-    for i, (name, desc) in enumerate(rows_left):
-        txb_runs(s, [("▸ ", SKY), (name, FG), ("   " + desc, MUTED)],
-                 PL_X, y0 + step * i, PL_W, Inches(0.7), size=19)
-    for i, (name, desc) in enumerate(rows_right):
-        txb_runs(s, [("▸ ", SKY), (name, FG), ("   " + desc, MUTED)],
-                 PR_X, y0 + step * i, PR_W, Inches(0.7), size=19)
-
-    footer = txb(s, "These are the basics. The tools that manage the agent's own context "
-                    "come next.",
-                 Inches(0.55), Inches(6.45), Inches(12.2), Inches(0.5),
-                 size=17, color=ACCENT, align=PP_ALIGN.CENTER)
-    animate_clicks(s, [[footer]])
-    add_notes(s,
-        "⏱ 0:50 | Running: ~23:50\n\n"
-        "What is actually in the toolbox of a coding agent: read, write and edit files,\n"
-        "run shell commands, run tests, search the repo, git, compile, fetch the web.\n"
-        "Plain, boring, powerful, the same things a developer does. Click the footer:\n"
-        "there is one more class of tools, the ones that manage the agent's own\n"
-        "context. That is the next layer. First, watch this toolbox in action.")
+        "it on someone else's servers (ChatGPT agent, Gemini in Google Search,\n"
+        "Slackbot). Local agents run it on your machine (Claude Code, Cursor, Codex\n"
+        "CLI). Click each side. Worth saying out loud: either way the model itself is\n"
+        "usually a cloud API. We are a local-agent crowd here.")
 
 
 def _agent_diagram_slide(prs, eyebrow, title, img_name, notes):
@@ -1631,9 +1579,10 @@ def s09a4_agent_full(prs):
 
 # Reusable agent walk-through layout ------------------------------------------
 
-def _agent_slide(prs, call_num, total, context_lines, new_lines, decision):
-    s = content_slide(prs, f"AGENT  —  CALL {call_num} of {total}",
-                      "Context accumulates with every step")
+def _agent_slide(prs, call_num, total, context_lines, new_lines, decision,
+                 title="Context accumulates with every step",
+                 show_decision=True, show_legend=True):
+    s = content_slide(prs, f"AGENT  ·  CALL {call_num} of {total}", title)
 
     box_left, box_top = Inches(0.45), Inches(1.95)
     box_w, box_h = Inches(8.2), Inches(5.25)
@@ -1655,93 +1604,82 @@ def _agent_slide(prs, call_num, total, context_lines, new_lines, decision):
         run.font.color.rgb = color
 
     d_left, d_top, d_w = Inches(8.9), Inches(1.95), Inches(4.1)
-    txb(s, "LLM decided:", d_left, d_top, d_w, Inches(0.4), size=13, color=MUTED)
-    rect(s, d_left, d_top + Inches(0.42), d_w, Inches(1.5),
-         fill=RGBColor(0x12, 0x22, 0x1E), line=ACCENT, line_w=Pt(1))
-    txb(s, decision, d_left + Inches(0.15), d_top + Inches(0.55),
-        d_w - Inches(0.3), Inches(1.2), size=15, color=ACCENT, font=MONO)
+    if show_decision:
+        txb(s, "LLM decided:", d_left, d_top, d_w, Inches(0.4), size=13, color=MUTED)
+        rect(s, d_left, d_top + Inches(0.42), d_w, Inches(1.5),
+             fill=RGBColor(0x12, 0x22, 0x1E), line=ACCENT, line_w=Pt(1))
+        txb(s, decision, d_left + Inches(0.15), d_top + Inches(0.55),
+            d_w - Inches(0.3), Inches(1.2), size=15, color=ACCENT, font=MONO)
 
-    txb(s, "▌ tool result (new)", d_left, d_top + Inches(2.2), d_w, Inches(0.4),
-        size=13, color=_NEW)
-    txb(s, "▌ previous LLM response", d_left, d_top + Inches(2.65), d_w, Inches(0.4),
-        size=13, color=_AI)
-    txb(s, "Context grows every step.\nLLM re-reads all of it.",
-        d_left, d_top + Inches(3.2), d_w, Inches(1.0), size=13, color=MUTED)
+    if show_legend:
+        txb(s, "▌ tool result (new)", d_left, d_top + Inches(2.2), d_w, Inches(0.4),
+            size=13, color=_NEW)
+        txb(s, "▌ previous LLM response", d_left, d_top + Inches(2.65), d_w, Inches(0.4),
+            size=13, color=_AI)
     return s
 
 
 def s09b_developer_wrote(prs):
-    """9b — Just the human question"""
-    s = content_slide(prs, "AGENT", "The developer wrote one question")
-    rect(s, Inches(2.5), Inches(2.7), Inches(8.3), Inches(1.2),
-         fill=CODE_BG, line=_HEAD, line_w=Pt(1))
-    txb(s, "Who is Taylor Swift's boyfriend?\n"
-           "Find out his age and calculate the square root of his age.",
-        Inches(2.7), Inches(2.85), Inches(7.9), Inches(0.85),
-        size=15, color=FG, font=MONO)
+    """9b: open the walk-through with the user's prompt."""
+    s = content_slide(prs, "AGENT", "Let's see how an AI agent works")
+    label = txb(s, "User prompt:", Inches(2.5), Inches(2.35), Inches(8.3), Inches(0.4),
+                size=15, color=MUTED)
+    box = rect(s, Inches(2.5), Inches(2.85), Inches(8.3), Inches(1.2),
+               fill=CODE_BG, line=_HEAD, line_w=Pt(1))
+    prompt = txb(s, "Who is Taylor Swift's boyfriend?\n"
+                    "Find out his age and calculate the square root of his age.",
+                 Inches(2.7), Inches(3.0), Inches(7.9), Inches(0.85),
+                 size=15, color=FG, font=MONO)
+    animate_clicks(s, [[label, box, prompt]])
     add_notes(s,
         "⏱ 0:20 | Running: 15:20\n\n"
-        "Just the question. 'This is what the developer typed. One question.'\n"
-        "Click to show what the agent wraps around it.")
+        "Click to reveal the prompt. (I asked this because my niece is a huge Swiftie.)\n"
+        "One plain question. Next we watch the agent work through it call by call.")
 
 
-def s09b2_developer_full_prompt(prs):
-    """9b2 — Full prompt wrapped in system context (hidden)"""
-    s = content_slide(prs, "AGENT", "The agent wraps it in context")
-    hide(s)
-    rect(s, Inches(0.55), Inches(1.95), Inches(12.2), Inches(4.9),
-         fill=RGBColor(0x12, 0x22, 0x1E), line=ACCENT, line_w=Pt(1))
-    txb(s, "[SYSTEM]", Inches(0.75), Inches(2.05), Inches(11), Inches(0.4),
-        size=13, color=ACCENT, font=MONO)
-    txb(s, "You are a helpful research assistant.\n"
-           "1. Search the web for any facts you need.\n"
-           "2. Use the calculator for any math.\n"
-           "3. Always show your reasoning step by step.\n\n"
-           "Available tools:\n"
-           "  web_search(query)   — search the internet\n"
-           "  calculator(expr)    — evaluate a math expression",
-        Inches(0.75), Inches(2.48), Inches(11.8), Inches(2.1),
-        size=14, color=MUTED, font=MONO)
-    rect(s, Inches(2.5), Inches(4.7), Inches(8.3), Inches(1.5),
-         fill=CODE_BG, line=_HEAD, line_w=Pt(1))
-    txb(s, "[HUMAN]", Inches(2.7), Inches(4.85), Inches(8.0), Inches(0.4),
-        size=13, color=_HEAD, font=MONO)
-    txb(s, "Who is Taylor Swift's boyfriend?\n"
-           "Find out his age and calculate the square root of his age.",
-        Inches(2.7), Inches(5.25), Inches(7.9), Inches(0.75),
-        size=15, color=FG, font=MONO)
+_SYS_HUMAN = [
+    ("[SYSTEM]",                                                   _HEAD),
+    ("You are a helpful research assistant.",                      _NEW),
+    ("When given a task:",                                         _NEW),
+    ("  1. Search the web for any facts you need.",                _NEW),
+    ("  2. Use the calculator for any math.",                      _NEW),
+    ("  3. Always show your reasoning step by step.",              _NEW),
+    ("",                                                           _NEW),
+    ("Available tools:",                                           _NEW),
+    ("  web_search(query)    : search the internet",               _NEW),
+    ("  calculator(expr)     : evaluate a math expression",        _NEW),
+    ("",                                                           _NEW),
+    ("[HUMAN]",                                                    _HEAD),
+    ("Who is Taylor Swift's boyfriend?",                           _NEW),
+    ("Find out his age and calculate the square root of his age.", _NEW),
+]
+
+
+def s09b1_call0(prs):
+    """Call 0: the assembled prompt the agent sends on the first call."""
+    s = _agent_slide(prs, 0, 4, [], _SYS_HUMAN, "",
+                     title="The agent wraps your prompt in context",
+                     show_decision=False, show_legend=False)
+    txb(s, "This is what the LLM reads on call 1.",
+        Inches(8.9), Inches(2.1), Inches(4.1), Inches(1.0),
+        size=14, color=MUTED, italic=True)
     add_notes(s,
         "⏱ 0:40 | Running: 16:00\n\n"
-        "'The agent didn't change the question — it wrapped it. System instructions,\n"
-        "tools list, then the original question nested inside.' Point at the tools list:\n"
-        "'This is how the LLM knows what tools exist — just text. Not a function\n"
-        "registry. A description.' Click to watch call #1.")
+        "The agent didn't change the question, it wrapped it: system instructions, a\n"
+        "tools list, then the original question nested inside. Point at the tools list:\n"
+        "this is how the LLM knows what tools exist, just text, a description, not a\n"
+        "function registry. Nothing has run yet. Click to watch call 1.")
 
 
 def s09c_call1(prs):
-    new = [
-        ("[SYSTEM]",                                                   _HEAD),
-        ("You are a helpful research assistant.",                      _NEW),
-        ("When given a task:",                                         _NEW),
-        ("  1. Search the web for any facts you need.",                _NEW),
-        ("  2. Use the calculator for any math.",                      _NEW),
-        ("  3. Always show your reasoning step by step.",              _NEW),
-        ("",                                                           _NEW),
-        ("Available tools:",                                           _NEW),
-        ("  web_search(query)   — search the internet",           _NEW),
-        ("  calculator(expr)    — evaluate a math expression",     _NEW),
-        ("",                                                           _NEW),
-        ("[HUMAN]",                                                    _HEAD),
-        ("Who is Taylor Swift's boyfriend?",                           _NEW),
-        ("Find out his age and calculate the square root of his age.", _NEW),
-    ]
-    s = _agent_slide(prs, 1, 4, [], new,
-                     'web_search(\n  "Taylor Swift\n   boyfriend")')
+    s = _agent_slide(prs, 1, 4, [], _SYS_HUMAN,
+                     'web_search(\n  "Taylor Swift\n   boyfriend")',
+                     show_legend=False)
     add_notes(s,
         "⏱ 1:00 | Running: 16:45\n\n"
-        "Everything is green — first call, all new. The LLM reads top to bottom:\n"
+        "Everything is green, first call, all new. The LLM reads top to bottom:\n"
         "I'm a research assistant, I have these tools, here's the question. It decides\n"
-        "it needs to search, and outputs a tool call — in text.")
+        "it needs to search, and outputs a tool call, in text.")
 
 
 def s09d_call2(prs):
@@ -1770,7 +1708,7 @@ def s09d_call2(prs):
         "⏱ 1:00 | Running: 18:00\n\n"
         "Grey = already seen, amber = previous LLM response, green = new tool result.\n"
         "The search result is appended; the entire context is sent again. The LLM is\n"
-        "never told it's on step 2 — it figures that out by re-reading from the top.")
+        "never told it's on step 2, it figures that out by re-reading from the top.")
 
 
 def s09e_call3(prs):
@@ -1792,7 +1730,7 @@ def s09e_call3(prs):
     add_notes(s,
         "⏱ 1:00 | Running: 18:45\n\n"
         "Context keeps growing; everything from calls 1-2 is still there and re-read.\n"
-        "Now it knows: boyfriend is Kelce, age 35. What's left? The square root —\n"
+        "Now it knows: boyfriend is Kelce, age 35. What's left? The square root,\n"
         "it switches tools to the calculator. Still just text output.")
 
 
@@ -1812,7 +1750,7 @@ def s09f_call4(prs):
         ("[TOOL RESULT]",                                              _HEAD),
         ("5.916079783099616",                                          _NEW),
         ("",                                                           _NEW),
-        ("[LLM — FINAL ANSWER]",                                  _HEAD),
+        ("[LLM: FINAL ANSWER]",                                        _HEAD),
         ("Taylor Swift's boyfriend is Travis Kelce.",                  _AI),
         ("His age: 35.  √35 ≈ 5.92",                         _AI),
     ]
@@ -1821,79 +1759,154 @@ def s09f_call4(prs):
         "⏱ 1:00 | Running: 19:45\n\n"
         "Full history dimmed; new green: calculator result and final answer. The LLM\n"
         "reads four calls' worth of context, sees the result, and decides it has\n"
-        "everything — no more tools. One question from the developer; 4 LLM calls,\n"
+        "everything, no more tools. One question from the user; 4 LLM calls,\n"
         "2 web searches, 1 calculator call underneath. That's an agent.")
 
 
-def s10a_context_problem(prs):
-    """10a — Context is limited"""
+def s10a_context_why(prs):
+    """Layer 3 opener: why managing context is the top layer (cost AND quality),
+    and the two things to always watch (how full, and what is inside)."""
     s = content_slide(prs, "LAYER 3 · CONTEXT MANAGEMENT",
-                      "Context is limited. We need to manage it.")
-    rect(s, Inches(6.65), Inches(2.0), Pt(1), Inches(3.7), fill=LINE_DIM)
+                      "Managing the context is the last layer")
 
-    txb(s, "Human intelligence is unlimited too.",
-        Inches(0.55), Inches(2.1), Inches(5.8), Inches(0.55),
-        size=19, bold=True, color=FG)
-    txb(s, "But it needs resources:\ntime, food, sleep, motivation.",
-        Inches(0.55), Inches(2.75), Inches(5.8), Inches(1.0), size=18, color=MUTED)
-    txb(s, "AI agents mostly need context.",
-        Inches(0.55), Inches(3.85), Inches(5.8), Inches(0.55),
-        size=19, bold=True, color=ACCENT)
+    bridge = txb(s, "You just watched the loop fill the context, call after call.",
+                 Inches(0.55), Inches(1.95), Inches(12.2), Inches(0.5),
+                 size=18, color=MUTED, italic=True, align=PP_ALIGN.CENTER)
+    why = txb_runs(s, [("More context  =  ", FG), ("more cost", GOLD), (",  ", FG),
+                       ("more latency", FG), (",  and  ", FG), ("worse answers", GOLD),
+                       (".", FG)],
+                   Inches(0.55), Inches(2.6), Inches(12.2), Inches(0.6),
+                   size=26, bold=True, align=PP_ALIGN.CENTER)
+    qual = txb(s, 'In a bloated window the model loses the thread ("lost in the middle").',
+               Inches(0.55), Inches(3.3), Inches(12.2), Inches(0.5),
+               size=17, color=MUTED, align=PP_ALIGN.CENTER)
 
-    txb(s, "Context fills up fast.",
-        Inches(6.9), Inches(2.1), Inches(6.1), Inches(0.55), size=22, bold=True, color=FG)
-    txb(s, "Larger context costs significantly more.",
-        Inches(6.9), Inches(2.85), Inches(6.1), Inches(0.55), size=22, bold=True, color=FG)
+    # The "what is inside + how full" picture: one labeled context-window bar.
+    cap = txb(s, "Always know two things:  how full it is, and what is inside.",
+              Inches(0.55), Inches(4.25), Inches(12.2), Inches(0.5),
+              size=18, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+    bar_x, bar_y, bar_h = Inches(1.0), Inches(5.05), Inches(0.72)
+    segs = [("system + tools", 1.4, SKY),
+            ("history", 3.1, ACCENT),
+            ("tool results", 3.0, GOLD),
+            ("your task", 1.1, FG),
+            ("free", 2.7, LINE_DIM)]
+    bar_shapes = [cap]
+    x = bar_x
+    for label, w_in, col in segs:
+        w = Inches(w_in)
+        is_free = (label == "free")
+        seg = rect(s, x, bar_y, w, bar_h,
+                   fill=BOX_FILL if is_free else col,
+                   line=col, line_w=Pt(1.5))
+        lbl = txb(s, label, x, bar_y + bar_h + Inches(0.08), w, Inches(0.4),
+                  size=13, color=MUTED if is_free else col, align=PP_ALIGN.CENTER)
+        bar_shapes += [seg, lbl]
+        x += w
+    frame = txb(s, "← in use ────────────────────────────",
+                bar_x, bar_y - Inches(0.42), Inches(8.6), Inches(0.35),
+                size=12, color=MUTED)
+    bar_shapes.append(frame)
 
-    txb(s, "Every agent manages context on its own — some vendors better than others.",
-        Inches(0.55), Inches(5.2), Inches(12.2), Inches(0.5),
-        size=16, color=MUTED, align=PP_ALIGN.CENTER)
-    txb(s, "Our job: manage context on top of that, and help the agent manage its own.",
-        Inches(0.55), Inches(5.75), Inches(12.2), Inches(0.5),
-        size=17, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+    animate_clicks(s, [[bridge, why, qual], bar_shapes])
     add_notes(s,
-        "⏱ 1:30 | Running: 22:30\n\n"
-        "Human intelligence has no hard limit either — but it needs fuel; deprive it\n"
-        "and performance degrades. AI is the same: wrong or too little context and it\n"
-        "degrades. Real agents do 20-50 steps and fill the window fast. Every agent\n"
-        "auto-manages some of this; our job is to manage on top and help it manage its own.")
+        "⏱ 1:15 | Running: ~23:30\n\n"
+        "Callback to the walk-through: every call appended to the context. Why care?\n"
+        "More context is not free: it costs more money, adds latency, AND makes answers\n"
+        "worse, the model loses the thread in a bloated window (lost in the middle). So\n"
+        "the job is to manage it. Click the bar: always know two things, how full the\n"
+        "window is, and what is actually inside it (system, history, tool results, your\n"
+        "task). That awareness is the whole layer. Next: what to do about it.")
+
+
+def s10a2_context_moves(prs):
+    """The three concrete context-management moves: start fresh, compress, offload."""
+    s = content_slide(prs, "LAYER 3 · CONTEXT MANAGEMENT",
+                      "When it fills up: three moves")
+
+    cols = [
+        ("Start fresh", ACCENT,
+         "the task changed, or the context\nis full of stale junk",
+         "clear it, keep only\nwhat still matters"),
+        ("Compress", SKY,
+         "history is long but\nstill relevant",
+         "summarize it into a\nshort note (compaction)"),
+        ("Offload to a file", GOLD,
+         "you will need it later,\nbut not right now",
+         "write it to disk, keep a\npointer, load on demand"),
+    ]
+    xs = [Inches(0.7), Inches(4.75), Inches(8.8)]
+    col_w = Inches(3.8)
+    # dividers between the three columns
+    rect(s, Inches(4.6), Inches(2.25), Pt(1), Inches(3.5), fill=LINE_DIM)
+    rect(s, Inches(8.65), Inches(2.25), Pt(1), Inches(3.5), fill=LINE_DIM)
+
+    groups = []
+    for x, (title, col, when, how) in zip(xs, cols):
+        head = txb(s, title, x, Inches(2.35), col_w, Inches(0.7),
+                   size=23, bold=True, color=col)
+        when_b = txb(s, when, x, Inches(3.2), col_w, Inches(1.1),
+                     size=16, color=MUTED, italic=True)
+        how_b = txb_runs(s, [("→  ", col), (how, FG)],
+                         x, Inches(4.5), col_w, Inches(1.1), size=17)
+        groups.append([head, when_b, how_b])
+
+    bridge = txb(s, 'The cleanest "offload to a file" is a skill.',
+                 Inches(0.55), Inches(6.4), Inches(12.2), Inches(0.5),
+                 size=19, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+    animate_clicks(s, groups + [[bridge]])
+    add_notes(s,
+        "⏱ 1:00 | Running: ~24:30\n\n"
+        "Three moves when the window fills. Start fresh: the task changed or the context\n"
+        "is full of stale junk, so clear it and keep only what matters. Compress: history\n"
+        "is long but still relevant, summarize it into a short note (this is compaction).\n"
+        "Offload to a file: you will need it later but not now, so write it to disk, keep\n"
+        "a pointer, load it back on demand. Click the bridge: the cleanest version of\n"
+        "offload-to-a-file is a skill, which is next.")
 
 
 def s10b_skills_filesystem(prs):
-    """10b — Skills and the filesystem"""
+    """Skills: the worked example of offload-to-a-file / load-on-demand."""
     s = content_slide(prs, "LAYER 3 · CONTEXT MANAGEMENT",
-                      "Example: skills and the filesystem")
-    txb(s, "A skill is a file on disk.",
-        Inches(0.55), Inches(2.0), Inches(12), Inches(0.6), size=26, bold=True, color=FG)
-    txb(s, "It has a name and a description. The LLM reads the description\n"
-           "and decides whether to load it — like a pointer into the filesystem.",
+                      "Skills: offload to a file, load on demand")
+    txb(s, "A skill is a markdown file: a short description, then the content.",
+        Inches(0.55), Inches(2.0), Inches(12), Inches(0.6), size=24, bold=True, color=FG)
+    txb(s, "The agent keeps only the description in context. When the task needs it,\n"
+           "it loads the rest and follows it. A new capability, no context bloat.",
         Inches(0.55), Inches(2.65), Inches(12), Inches(0.8), size=18, color=MUTED)
     code_block(s,
-        'skill: "commit"\ndescription: "Use when the user wants to create a git commit..."',
-        Inches(0.55), Inches(3.55), Inches(12), Inches(1.0), size=15)
-    txb(s, "Why this matters:", Inches(0.55), Inches(4.75), Inches(4), Inches(0.45),
+        'name: commit\n'
+        'description: Use when the user wants to create a git commit\n'
+        '---\n'
+        'Stage the changes, write a message, run hooks, then commit...',
+        Inches(0.55), Inches(3.55), Inches(12), Inches(1.25), size=15)
+    txb(s, "description stays in context  ·  body loads only when needed",
+        Inches(0.55), Inches(4.9), Inches(12), Inches(0.4),
+        size=14, color=MUTED, italic=True)
+    txb(s, "Why this matters:", Inches(0.55), Inches(5.45), Inches(4), Inches(0.45),
         size=16, bold=True, color=ACCENT)
-    y = Inches(5.25)
-    for b in ["Load / unload on demand  — keep the context lean",
-              "Share with colleagues     — put skills in a repo",
-              "Community skills          — use what others built",
-              "Vendor-independent        — just text files"]:
-        txb(s, f"→  {b}", Inches(0.55), y, Inches(12), Inches(0.42),
-            size=16, color=FG, font=MONO)
-        y += Inches(0.42)
+    y = Inches(5.9)
+    for b in ["Load / unload on demand  :  keep the context lean",
+              "Share with colleagues     :  put skills in a repo",
+              "Community skills          :  use what others built",
+              "Vendor-independent        :  just text files"]:
+        txb(s, f"→  {b}", Inches(0.55), y, Inches(12), Inches(0.38),
+            size=15, color=FG, font=MONO)
+        y += Inches(0.38)
     add_notes(s,
-        "⏱ 1:30 | Running: 24:00\n\n"
-        "A skill is literally a text file; its description tells the LLM when to load it\n"
-        "— the LLM pattern-matches the description against the task. Four wins: load/\n"
-        "unload (pay for context only when needed), share (commit the folder), community\n"
-        "(use others' skills, like npm/pip), vendor-independent (just text). The\n"
-        "filesystem is your context-management layer — you already know how to use it.")
+        "⏱ 1:15 | Running: ~25:45\n\n"
+        "The cleanest offload-to-a-file: a skill is literally a markdown file, a short\n"
+        "description plus a body. Only the description sits in context; the agent\n"
+        "pattern-matches it against the task and loads the body on demand (progressive\n"
+        "disclosure). Four wins: load/unload (pay for context only when needed), share\n"
+        "(commit the folder), community (use others' skills, like npm/pip), vendor-\n"
+        "independent (just text). The filesystem is your context-management layer.")
 
 
 def s10c_ecosystem(prs):
-    """10c — The ecosystem"""
+    """10c: the ecosystem, many names for context management."""
     s = content_slide(prs, "LAYER 3 · CONTEXT MANAGEMENT",
-                      "The ecosystem — different names, same idea")
+                      "The ecosystem: different names, same idea")
     txb(s, "Once you see it, you can't unsee it:",
         Inches(0.55), Inches(2.0), Inches(12), Inches(0.5), size=20, color=MUTED)
     y = Inches(2.65)
@@ -1918,7 +1931,7 @@ def s10c_ecosystem(prs):
     add_notes(s,
         "⏱ 1:30 | Running: 25:30\n\n"
         "You've used some of these already: Cursor rules, Claude Projects, Copilot\n"
-        "instructions, MCP, LangChain/LlamaIndex. Different names, vendors, polish —\n"
+        "instructions, MCP, LangChain/LlamaIndex. Different names, vendors, polish,\n"
         "all answering one question: what goes in the context window? Learn the concept\n"
         "once and you can evaluate any new tool by asking how it manages context.")
 
@@ -2070,16 +2083,17 @@ def build():
     s09mr_mapreduce(prs)             # V2: many LLMs + plain code (map-reduce tree)
     s09loop_notools(prs)             # V3: feed output back in, the exit-point question
     s09loop_tools(prs)               # V4: add tools -> an agent (full loop diagram)
-    s09cloudlocal(prs)               # cloud vs local agents (brain usually cloud)
-    s09codingtools(prs)              # a coding agent's basic toolbox
-    s09b_developer_wrote(prs)
-    s09b2_developer_full_prompt(prs)
-    s09c_call1(prs)
-    s09d_call2(prs)
+    s09b_developer_wrote(prs)        # walk-through opens: the user's prompt
+    s09b1_call0(prs)                 # CALL 0: the assembled [SYSTEM]+[HUMAN] prompt
+    s09c_call1(prs)                  # CALL 1: LLM decided (web_search)
+    s09d_call2(prs)                  # CALL 2: + legend
     s09e_call3(prs)
     s09f_call4(prs)
-    s10a_context_problem(prs)
-    s10b_skills_filesystem(prs)
+    s09cloudlocal(prs)               # cloud vs local agents (brain usually cloud)
+    # ── Piece 3 · CONTEXT MANAGEMENT ─────────────────────────────────────────
+    s10a_context_why(prs)            # why manage context (cost AND quality) + what to watch
+    s10a2_context_moves(prs)         # the three moves: start fresh / compress / offload
+    s10b_skills_filesystem(prs)      # worked example: skills (offload + load on demand)
     s10c_ecosystem(prs)
     s10e_ideas_spectrum(prs)         # zoom out: world → you, and how each tier reaches the model
     s10d_layer_summary(prs)
