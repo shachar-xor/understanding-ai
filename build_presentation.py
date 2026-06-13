@@ -1766,30 +1766,24 @@ def s09f_call4(prs):
 def s10a_context_why(prs):
     """Layer 3 opener: why managing context is the top layer (cost AND quality),
     and the two things to always watch (how full, and what is inside)."""
-    s = content_slide(prs, "LAYER 3 · CONTEXT MANAGEMENT",
-                      "Managing the context is the last layer")
+    s = content_slide(prs, "CONTEXT MANAGEMENT",
+                      "Context is king")
 
-    bridge = txb(s, "You just watched the loop fill the context, call after call.",
-                 Inches(0.55), Inches(1.95), Inches(12.2), Inches(0.5),
-                 size=18, color=MUTED, italic=True, align=PP_ALIGN.CENTER)
     why = txb_runs(s, [("More context  =  ", FG), ("more cost", GOLD), (",  ", FG),
                        ("more latency", FG), (",  and  ", FG), ("worse answers", GOLD),
                        (".", FG)],
                    Inches(0.55), Inches(2.6), Inches(12.2), Inches(0.6),
                    size=26, bold=True, align=PP_ALIGN.CENTER)
-    qual = txb(s, 'In a bloated window the model loses the thread ("lost in the middle").',
-               Inches(0.55), Inches(3.3), Inches(12.2), Inches(0.5),
-               size=17, color=MUTED, align=PP_ALIGN.CENTER)
 
     # The "what is inside + how full" picture: one labeled context-window bar.
-    cap = txb(s, "Always know two things:  how full it is, and what is inside.",
-              Inches(0.55), Inches(4.25), Inches(12.2), Inches(0.5),
-              size=18, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+    cap = txb(s, "We should be aware of the context size, and the context content.",
+              Inches(0.55), Inches(4.2), Inches(12.2), Inches(0.6),
+              size=22, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
     bar_x, bar_y, bar_h = Inches(1.0), Inches(5.05), Inches(0.72)
     segs = [("system + tools", 1.4, SKY),
             ("history", 3.1, ACCENT),
             ("tool results", 3.0, GOLD),
-            ("your task", 1.1, FG),
+            ("your prompts", 1.1, FG),
             ("free", 2.7, LINE_DIM)]
     bar_shapes = [cap]
     x = bar_x
@@ -1803,71 +1797,64 @@ def s10a_context_why(prs):
                   size=13, color=MUTED if is_free else col, align=PP_ALIGN.CENTER)
         bar_shapes += [seg, lbl]
         x += w
-    frame = txb(s, "← in use ────────────────────────────",
-                bar_x, bar_y - Inches(0.42), Inches(8.6), Inches(0.35),
-                size=12, color=MUTED)
-    bar_shapes.append(frame)
 
-    animate_clicks(s, [[bridge, why, qual], bar_shapes])
+    animate_clicks(s, [[why], bar_shapes])
     add_notes(s,
         "⏱ 1:15 | Running: ~23:30\n\n"
         "Callback to the walk-through: every call appended to the context. Why care?\n"
         "More context is not free: it costs more money, adds latency, AND makes answers\n"
-        "worse, the model loses the thread in a bloated window (lost in the middle). So\n"
-        "the job is to manage it. Click the bar: always know two things, how full the\n"
-        "window is, and what is actually inside it (system, history, tool results, your\n"
-        "task). That awareness is the whole layer. Next: what to do about it.")
+        "worse (the model loses the thread in a bloated window). So the job is to manage\n"
+        "it. Click the bar: be aware of two things, how full the window is, and what is\n"
+        "actually inside it (system, history, tool results, your prompts). That awareness\n"
+        "is the whole layer. Next: what to do about it.")
 
 
 def s10a2_context_moves(prs):
     """The three concrete context-management moves: start fresh, compress, offload."""
-    s = content_slide(prs, "LAYER 3 · CONTEXT MANAGEMENT",
-                      "When it fills up: three moves")
+    s = content_slide(prs, "CONTEXT MANAGEMENT",
+                      "The basics")
 
     cols = [
         ("Start fresh", ACCENT,
          "the task changed, or the context\nis full of stale junk",
          "clear it, keep only\nwhat still matters"),
-        ("Compress", SKY,
-         "history is long but\nstill relevant",
-         "summarize it into a\nshort note (compaction)"),
         ("Offload to a file", GOLD,
          "you will need it later,\nbut not right now",
          "write it to disk, keep a\npointer, load on demand"),
+        ("Compress", SKY,
+         "history is long but\nstill relevant",
+         "summarize it into a\nshort note (compaction)"),
     ]
     xs = [Inches(0.7), Inches(4.75), Inches(8.8)]
     col_w = Inches(3.8)
     # dividers between the three columns
-    rect(s, Inches(4.6), Inches(2.25), Pt(1), Inches(3.5), fill=LINE_DIM)
-    rect(s, Inches(8.65), Inches(2.25), Pt(1), Inches(3.5), fill=LINE_DIM)
+    rect(s, Inches(4.6), Inches(2.35), Pt(1), Inches(4.0), fill=LINE_DIM)
+    rect(s, Inches(8.65), Inches(2.35), Pt(1), Inches(4.0), fill=LINE_DIM)
 
     groups = []
     for x, (title, col, when, how) in zip(xs, cols):
-        head = txb(s, title, x, Inches(2.35), col_w, Inches(0.7),
-                   size=23, bold=True, color=col)
-        when_b = txb(s, when, x, Inches(3.2), col_w, Inches(1.1),
-                     size=16, color=MUTED, italic=True)
+        head = txb(s, title, x, Inches(2.45), col_w, Inches(0.8),
+                   size=27, bold=True, color=col)
+        when_b = txb(s, when, x, Inches(3.45), col_w, Inches(1.3),
+                     size=19, color=MUTED, italic=True)
         how_b = txb_runs(s, [("→  ", col), (how, FG)],
-                         x, Inches(4.5), col_w, Inches(1.1), size=17)
+                         x, Inches(4.85), col_w, Inches(1.3), size=20)
         groups.append([head, when_b, how_b])
 
-    bridge = txb(s, 'The cleanest "offload to a file" is a skill.',
-                 Inches(0.55), Inches(6.4), Inches(12.2), Inches(0.5),
-                 size=19, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
-    animate_clicks(s, groups + [[bridge]])
+    animate_clicks(s, groups)
     add_notes(s,
         "⏱ 1:00 | Running: ~24:30\n\n"
         "Three moves when the window fills. Start fresh: the task changed or the context\n"
-        "is full of stale junk, so clear it and keep only what matters. Compress: history\n"
-        "is long but still relevant, summarize it into a short note (this is compaction).\n"
-        "Offload to a file: you will need it later but not now, so write it to disk, keep\n"
-        "a pointer, load it back on demand. Click the bridge: the cleanest version of\n"
-        "offload-to-a-file is a skill, which is next.")
+        "is full of stale junk, so clear it and keep only what matters. Offload to a file:\n"
+        "you will need it later but not now, so write it to disk, keep a pointer, load it\n"
+        "back on demand. Compress: history is long but still relevant, summarize it into a\n"
+        "short note (this is compaction). The cleanest version of offload-to-a-file is a\n"
+        "skill, which is next.")
 
 
 def s10b_skills_filesystem(prs):
     """Skills: the worked example of offload-to-a-file / load-on-demand."""
-    s = content_slide(prs, "LAYER 3 · CONTEXT MANAGEMENT",
+    s = content_slide(prs, "CONTEXT MANAGEMENT",
                       "Skills: offload to a file, load on demand")
     txb(s, "A skill is a markdown file: a short description, then the content.",
         Inches(0.55), Inches(2.0), Inches(12), Inches(0.6), size=24, bold=True, color=FG)
@@ -1905,7 +1892,7 @@ def s10b_skills_filesystem(prs):
 
 def s10c_ecosystem(prs):
     """10c: the ecosystem, many names for context management."""
-    s = content_slide(prs, "LAYER 3 · CONTEXT MANAGEMENT",
+    s = content_slide(prs, "CONTEXT MANAGEMENT",
                       "The ecosystem: different names, same idea")
     txb(s, "Once you see it, you can't unsee it:",
         Inches(0.55), Inches(2.0), Inches(12), Inches(0.5), size=20, color=MUTED)
