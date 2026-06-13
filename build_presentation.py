@@ -1471,7 +1471,7 @@ def s09mr_mapreduce(prs):
 
 def s09loop_notools(prs):
     """Feed the LLM's output back into its input: a loop with no tools."""
-    s = content_slide(prs, "AGENT", "Feed the output back in: a loop")
+    s = content_slide(prs, "AGENT", "The agent loop")
     # The concrete prompt you actually write: the exit lives in the instruction.
     prompt = txb(s, '"Write a tweet about our product launch. Critique your draft and '
                     'rewrite until it is punchy, on-brand, and at most 140 characters."',
