@@ -1130,97 +1130,98 @@ def s08op_operation(prs):
 
 
 def s08p1_trivial_logic(prs):
-    """Property: trivial pattern, and real logic."""
+    """Property: trivial pattern, and real logic. Prompts first, answers on click."""
     s = content_slide(prs, "LLM", "Trivial, yet it can reason")
     _divider(s)
-    left = [_label(s, "A 4-year-old could do these", PL_X, PL_W)]
-    y = PBODY_Y
-    for pr, an in [('"The sky is ___"', '"blue"'), ('"Dogs say ___"', '"woof"')]:
-        left += _ex(s, PL_X, y, PL_W, pr, an, psize=22, asize=22)
-        y += Inches(1.25)
+    sky_p,  sky_a  = _ex(s, PL_X, Inches(2.7), PL_W, '"The sky is ___"', '"blue"', psize=22, asize=22)
+    dog_p,  dog_a  = _ex(s, PL_X, Inches(4.4), PL_W, '"Dogs say ___"', '"woof"', psize=22, asize=22)
+    soc_p,  soc_a  = _ex(s, PR_X, Inches(2.7), PR_W,
+                         '"All humans are mortal.\nSocrates is human.\nTherefore Socrates is ___"',
+                         '"mortal"', psize=18, ph_in=1.35, asize=18)
+    twin_p, twin_a = _ex(s, PR_X, Inches(4.75), PR_W,
+                         '"I fly near light-speed to a star\nand back. Next to my twin, I aged ___"',
+                         '"less"', psize=18, ph_in=1.0, asize=18)
 
-    right = [_label(s, "And yet, logic from everything ever written", PR_X, PR_W)]
-    right += _ex(s, PR_X, PBODY_Y, PR_W,
-                 '"All humans are mortal.\nSocrates is human.\nTherefore Socrates is ___"',
-                 '"mortal"', psize=18, ph_in=1.3, asize=18)
-    right += _ex(s, PR_X, Inches(4.6), PR_W,
-                 '"I fly near light-speed to a star\nand back. Next to my twin, I aged ___"',
-                 '"less"', psize=18, ph_in=1.0, asize=18)
-
-    bottom = txb(s, "The mechanism is trivial. The scale is not.",
-                 PL_X, PBOTTOM_Y, Inches(12.2), Inches(0.5),
-                 size=18, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
-    animate_clicks(s, [left, right, [bottom]])
+    # One example at a time: sentence appears, click reveals its answer, then the next.
+    animate_clicks(s, [
+        [sky_p],  [sky_a],
+        [dog_p],  [dog_a],
+        [soc_p],  [soc_a],
+        [twin_p], [twin_a],
+    ])
     add_notes(s,
         "⏱ 1:30 | Running: ~11:05\n\n"
-        "Left: pure pattern matching, a small child completes these. Right: the same\n"
-        "autocomplete, but now it is completing logic and physics, because it has read\n"
-        "enough philosophy and science text to know how those sentences end. The twin\n"
-        "paradox 'less' comes from the corpus, not from first-principles reasoning.\n"
-        "Same trivial mechanism, run at an enormous scale.")
+        "Left (click prompts, let the room answer, click): pure pattern matching, a\n"
+        "small child completes these. Right (same): the same autocomplete, now landing\n"
+        "logic and physics, because it has read enough philosophy and science text to\n"
+        "know how those sentences end. The twin paradox 'less' comes from the corpus,\n"
+        "not from reasoning. Say it: the mechanism is trivial, the scale is not.")
 
 
 def s08p2_knowledge_frozen(prs):
-    """Property: holds general knowledge, but frozen in time."""
+    """Property: holds general knowledge, but frozen in time. Prompts first, answers on click."""
     s = content_slide(prs, "LLM", "It knows a lot, up to a point")
     _divider(s)
-    left = [_label(s, "General human knowledge", PL_X, PL_W)]
-    y = PBODY_Y
-    for pr, an in [('"The capital of Japan is ___"', '"Tokyo"'),
-                   ('"Romeo and ___"', '"Juliet"'),
-                   ('"Water is two parts hydrogen,\none part ___"', '"oxygen"')]:
-        left += _ex(s, PL_X, y, PL_W, pr, an, psize=19, ph_in=0.5 if "\n" not in pr else 0.85, asize=19)
-        y += Inches(1.05 if "\n" not in pr else 1.4)
+    jp_p, jp_a = _ex(s, PL_X, Inches(2.6), PL_W, '"The capital of Japan is ___"', '"Tokyo"', psize=19, asize=19)
+    ro_p, ro_a = _ex(s, PL_X, Inches(3.65), PL_W, '"Romeo and ___"', '"Juliet"', psize=19, asize=19)
+    wa_p, wa_a = _ex(s, PL_X, Inches(4.7), PL_W,
+                     '"Water is two parts hydrogen,\none part ___"', '"oxygen"',
+                     psize=19, ph_in=0.85, asize=19)
 
-    right = [_label(s, "Frozen at training time", PR_X, PR_W)]
-    right += _ex(s, PR_X, PBODY_Y, PR_W,
-                 '"The news this morning was ___"', '"(it cannot know)"', psize=19, asize=19)
-    right += _ex(s, PR_X, Inches(4.15), PR_W,
-                 '"The latest model released is ___"', '"(whatever was current then)"',
-                 psize=19, asize=19)
+    ne_p, ne_a = _ex(s, PR_X, Inches(2.6), PR_W,
+                     '"The news this morning was ___"', '"(it cannot know)"', psize=19, asize=19)
+    md_p, md_a = _ex(s, PR_X, Inches(4.3), PR_W,
+                     '"The latest model released is ___"', '"(whatever was current then)"',
+                     psize=19, asize=19)
 
-    bottom = txb(s, "It learned the world once, then stopped.",
-                 PL_X, PBOTTOM_Y, Inches(12.2), Inches(0.5),
-                 size=18, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
-    animate_clicks(s, [left, right, [bottom]])
+    # One example at a time: sentence appears, click reveals its answer, then the next.
+    animate_clicks(s, [
+        [jp_p], [jp_a],
+        [ro_p], [ro_a],
+        [wa_p], [wa_a],
+        [ne_p], [ne_a],
+        [md_p], [md_a],
+    ])
     add_notes(s,
         "⏱ 1:15 | Running: ~12:20\n\n"
-        "Left: it carries a huge amount of general knowledge, geography, literature,\n"
-        "science, all from the training text. Right: but it is frozen. Ask about\n"
-        "today's news or the newest release and it cannot know, it can only guess\n"
-        "from whatever was true when training ended. This is the 'knowledge cutoff'.\n"
-        "Takeaway: great for settled knowledge, unreliable for anything recent.")
+        "Left (prompts, then answers): a huge amount of settled general knowledge,\n"
+        "geography, literature, science, all from the training text. Right: but it is\n"
+        "frozen. Ask about today's news or the newest release and it cannot know, it\n"
+        "can only guess from whatever was true when training ended (the 'knowledge\n"
+        "cutoff'). Say it: it learned the world once, then stopped.")
 
 
 def s08p3_statistical_predicts(prs):
     """Property: statistical (same prompt, different answers) + predicts, not looks up."""
     s = content_slide(prs, "LLM", "A guess, not a lookup")
     _divider(s)
-    left = [_label(s, "Same prompt, run twice", PL_X, PL_W)]
-    left.append(txb(s, '"A good name for a coffee shop: ___"',
-                    PL_X, PBODY_Y, PL_W, Inches(0.9), size=19, color=FG, font=MONO))
-    left.append(txb(s, '→  "The Daily Grind"', PL_X, Inches(3.75), PL_W, Inches(0.45),
-                    size=19, color=ACCENT, font=MONO))
-    left.append(txb(s, '→  "Bean There, Done That"', PL_X, Inches(4.35), PL_W, Inches(0.45),
-                    size=19, color=SKY, font=MONO))
+    coffee_p = txb(s, '"A good name for a coffee shop: ___"',
+                   PL_X, Inches(2.7), PL_W, Inches(0.9), size=19, color=FG, font=MONO)
+    a1 = txb(s, '→  "The Daily Grind"', PL_X, Inches(3.75), PL_W, Inches(0.45),
+             size=19, color=ACCENT, font=MONO)
+    a2 = txb(s, '→  "Bean There, Done That"', PL_X, Inches(4.35), PL_W, Inches(0.45),
+             size=19, color=SKY, font=MONO)
 
-    right = [_label(s, "It predicts, it does not look up", PR_X, PR_W)]
-    right.append(txb(s, "There is no database behind it.\nIt generates the most likely text.",
-                     PR_X, PBODY_Y, PR_W, Inches(1.1), size=20, color=FG))
-    right += _ex(s, PR_X, Inches(4.3), PR_W,
-                 '"My account number is ___"', '"(it will invent one)"', psize=19, asize=19)
+    acct_p, acct_a = _ex(s, PR_X, Inches(2.7), PR_W,
+                         '"My account number is ___"', '"(it invents one)"', psize=19, asize=19)
+    wx_p, wx_a     = _ex(s, PR_X, Inches(4.4), PR_W,
+                         '"The weather right now is ___"', '"(it cannot look)"', psize=19, asize=19)
 
-    bottom = txb(s, "Same question, different answers. Probability, not retrieval.",
-                 PL_X, PBOTTOM_Y, Inches(12.2), Inches(0.5),
-                 size=18, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
-    animate_clicks(s, [left, right, [bottom]])
+    # One example at a time; the coffee prompt gets two different answers, one per click.
+    animate_clicks(s, [
+        [coffee_p],          # the sentence to complete
+        [a1],                # one answer
+        [a2],                # run it again, a different answer
+        [acct_p], [acct_a],
+        [wx_p],   [wx_a],
+    ])
     add_notes(s,
         "⏱ 1:15 | Running: ~13:35\n\n"
-        "Left: run the exact same prompt twice and you can get different answers.\n"
-        "It samples from probabilities, it is not deterministic by default. Right:\n"
-        "this is because it predicts likely text, it does not retrieve facts from a\n"
-        "store. Ask for something it cannot know, like your account number, and it\n"
-        "will happily generate a plausible one. Probability, not retrieval.")
+        "Left: show the prompt, take a guess from the room, click the first answer,\n"
+        "then click again, a different answer for the same prompt. It samples from\n"
+        "probabilities, it is not deterministic. Right: that is because it predicts\n"
+        "likely text, it does not look anything up. Ask for your account number or\n"
+        "the live weather and it will invent or guess. Probability, not retrieval.")
 
 
 def s08p4_subjective_oneletter(prs):

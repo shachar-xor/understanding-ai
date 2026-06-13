@@ -53,14 +53,14 @@ def s_context_growth(prs):
     # ── milestones (chronological) ────────────────────────────────────────────
     # (model, year, display, tokens, colour)
     data = [
-        ("GPT-3",            "2020", "2K",     2048,    _DIM),
-        ("GPT-3.5",          "2022", "4K",     4096,    _DIM),
-        ("GPT-4",            "2023", "8K",     8192,    SKY),
-        ("Claude",           "2023", "100K",   100000,  ACCENT),
-        ("GPT-4 Turbo",      "2023", "128K",   128000,  ACCENT),
-        ("Claude 2.1",       "2024", "200K",   200000,  ACCENT),
-        ("Gemini 1.5",       "2024", "1M",     1000000, GOLD),
-        ("GPT-4.1 · Gemini", "2025", "1M–2M",  2000000, GOLD),
+        ("GPT-3",           "2020", "2K",   2048,    _DIM),
+        ("GPT-3.5",         "2022", "4K",   4096,    _DIM),
+        ("GPT-4",           "2023", "8K",   8192,    SKY),
+        ("Claude",          "2023", "100K", 100000,  ACCENT),
+        ("Claude 2.1",      "2023", "200K", 200000,  ACCENT),
+        ("Gemini 1.5",      "2024", "2M",   2000000, GOLD),
+        ("Claude Sonnet 4", "2025", "1M",   1000000, GOLD),
+        ("Claude Opus 4.8", "2026", "1M",   1000000, GOLD),
     ]
 
     n = len(data)
@@ -95,8 +95,8 @@ def s_context_growth(prs):
     callout = []
     callout.append(txb(s, "≈ 1000×", Inches(1.45), Inches(2.45), Inches(3.6), Inches(0.8),
                        size=44, bold=True, color=GOLD, align=PP_ALIGN.LEFT))
-    callout.append(txb(s, "2K → 2,000,000 tokens\nin about five years.",
-                       Inches(1.5), Inches(3.35), Inches(4.2), Inches(1.0),
+    callout.append(txb(s, "2K → millions of tokens in ~4 years.\nThen 1M became the standard.",
+                       Inches(1.5), Inches(3.35), Inches(4.6), Inches(1.0),
                        size=18, color=FG, align=PP_ALIGN.LEFT))
 
     # Reveal the story in three clicks: early → mid → explosion + callout.
@@ -110,10 +110,13 @@ def s_context_growth(prs):
         "DRAFT visualization — context-window growth.\n\n"
         "The window we've been talking about hasn't stood still. Walk it left to right:\n"
         "early models gave us a couple thousand tokens — a few pages. Then 100K, 200K,\n"
-        "and within a year, a million-plus. About a 1000× jump in five years (log scale —\n"
-        "each gridline is 10×, so the real jump is far bigger than the bars suggest).\n\n"
-        "But the punchline still holds: bigger windows fill up just as fast, and large\n"
-        "context costs significantly more — so managing context matters more, not less.")
+        "and by 2024 a million-plus (Gemini hit 2M). That's roughly a 1000× jump in ~4\n"
+        "years (log scale — each gridline is 10×, so the real jump dwarfs the bar heights).\n\n"
+        "The interesting part is what happened next: the race plateaued. Instead of\n"
+        "chasing ever-bigger numbers, ~1M became the standard ceiling across vendors —\n"
+        "Claude Sonnet 4 (2025) and Opus 4.8 (2026) both ship 1M.\n\n"
+        "Punchline still holds: bigger windows fill up just as fast, and large context\n"
+        "costs significantly more — so managing context matters more, not less.")
 
 
 def build():
